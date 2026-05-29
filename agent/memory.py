@@ -52,3 +52,12 @@ def add_weak_topic(topic):
 
 def view_progress():
     return load_progress()
+
+def get_recommended_topic():
+    progress = load_progress()
+    weak_topics = progress.get("weak_topics", [])
+
+    if weak_topics:
+        return weak_topics[0]
+
+    return "Terraform state"
