@@ -10,6 +10,7 @@ def main():
     print("3. Add Weak Topic")
     print("4. View Progress")
     print("5. Recommend Topic")
+    print("6. Generate Daily Plan from Weak Topic")
 
     choice = input("Choose an option: ")
 
@@ -59,8 +60,22 @@ def main():
     elif choice == "5":
         topic = get_recommended_topic()
         print(f"\nRecommended topic for today: {topic}")
+
+    elif choice == "6":
+        topic = get_recommended_topic()
+        duration = int(input("How many minutes do you have today? "))
+        difficulty = input("Difficulty level? beginner/intermediate/advanced: ")
+
+        print(f"\nUsing recommended weak topic: {topic}")
+
+        plan = generate_study_plan(topic, duration, difficulty)
+        print(plan)
+
+        add_study_session(topic, duration, difficulty)
+        print("Daily plan saved.")
+
     else:
-        print("Invalid choice. Please select 1 or 2.")
+        print("Invalid choice. Please select 1, 2, 3, 4, 5, or 6.")
 
 
 if __name__ == "__main__":
