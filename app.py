@@ -1,11 +1,13 @@
 from agent.planner import generate_study_plan
 from agent.interviewer import get_interview_questions
-
+from agent.memory import add_study_session, add_weak_topic, view_progress
 
 def main():
     print("Welcome to KB AI DevOps Study Buddy")
     print("1. Generate Study Plan")
     print("2. Interview Mode")
+    print("3. Add Weak Topic")
+    print("4. View Progress")
 
     choice = input("Choose an option: ")
 
@@ -17,6 +19,9 @@ def main():
         plan = generate_study_plan(topic, duration, difficulty)
         print(plan)
 
+        add_study_session(topic, duration, difficulty)
+        print("Study session saved.")
+
     elif choice == "2":
         topic = input("Which topic do you want interview questions for? ")
         questions = get_interview_questions(topic)
@@ -24,6 +29,16 @@ def main():
         print("\nInterview Questions:\n")
         for index, question in enumerate(questions, start=1):
             print(f"{index}. {question}")
+    
+    elif choice == "3":
+        topic = input("Which topic do you want to mark as weak? ")
+        add_weak_topic(topic)
+        print(f"{topic} added to weak topics.")
+
+    elif choice == "4":
+        progress = view_progress()
+        print("\nYour Progress:\n")
+        print(progress)
 
     else:
         print("Invalid choice. Please select 1 or 2.")

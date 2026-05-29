@@ -1,5 +1,16 @@
 {
-  "completed_topics": [],
-  "weak_topics": [],
-  "study_sessions": []
+    "completed_topics": [
+        "Kubernetes"
+    ],
+    "weak_topics": [
+        "Terraform state"
+    ],
+    "study_sessions": [
+        {
+            "topic": "Kubernetes",
+            "duration": 45,
+            "difficulty": "beginner",
+            "date": "2026-05-29 22:25:29"
+        }
+    ]
 }
