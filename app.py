@@ -2,6 +2,7 @@ from agent.planner import generate_study_plan
 from agent.interviewer import get_interview_questions
 from agent.memory import add_study_session, add_weak_topic, view_progress
 from agent.memory import add_study_session, add_weak_topic, view_progress, get_recommended_topic
+from agent.evaluator import evaluate_answer
 
 def main():
     print("Welcome to KB AI DevOps Study Buddy")
@@ -11,6 +12,7 @@ def main():
     print("4. View Progress")
     print("5. Recommend Topic")
     print("6. Generate Daily Plan from Weak Topic")
+    print("7. Evaluate Interview Answer")
 
     choice = input("Choose an option: ")
 
@@ -74,6 +76,30 @@ def main():
         add_study_session(topic, duration, difficulty)
         print("Daily plan saved.")
 
+    elif choice == "7":
+        topic = input("Enter topic for evaluation: ")
+        print("Write your answer below:")
+        user_answer = input("> ")
+
+        result = evaluate_answer(topic, user_answer)
+
+        print("\nEvaluation Result:")
+        print(f"Score: {result['score']}/10")
+
+        print("\nMatched Points:")
+        for item in result["matched"]:
+            print(f"- {item}")
+
+        print("\nMissing Points:")
+        for item in result["missing"]:
+            print(f"- {item}")
+
+        print(f"\nFeedback: {result['feedback']}")
+
+        if result["score"] < 7:
+            add_weak_topic(topic)
+            print(f"\n'{topic}' added to weak topics.")
+            
     else:
         print("Invalid choice. Please select 1, 2, 3, 4, 5, or 6.")
 
