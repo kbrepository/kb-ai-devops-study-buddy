@@ -61,3 +61,32 @@ def get_recommended_topic():
         return weak_topics[0]
 
     return "Terraform state"
+
+def get_latest_session_summary():
+    progress = load_progress()
+    sessions = progress.get("study_sessions", [])
+    weak_topics = progress.get("weak_topics", [])
+
+    if not sessions:
+        return "No study sessions found yet."
+
+    latest = sessions[-1]
+
+    summary = f"""
+Latest Study Session Summary
+
+Topic: {latest['topic']}
+Duration: {latest['duration']} minutes
+Difficulty: {latest['difficulty']}
+Date: {latest['date']}
+
+Current Weak Topics:
+"""
+
+    if weak_topics:
+        for topic in weak_topics:
+            summary += f"- {topic}\n"
+    else:
+        summary += "- No weak topics added yet.\n"
+
+    return summary

@@ -3,6 +3,7 @@ from agent.interviewer import get_interview_questions
 from agent.memory import add_study_session, add_weak_topic, view_progress
 from agent.memory import add_study_session, add_weak_topic, view_progress, get_recommended_topic
 from agent.evaluator import evaluate_answer
+from agent.memory import get_latest_session_summary
 
 def main():
     print("Welcome to KB AI DevOps Study Buddy")
@@ -13,6 +14,7 @@ def main():
     print("5. Recommend Topic")
     print("6. Generate Daily Plan from Weak Topic")
     print("7. Evaluate Interview Answer")
+    print("8. View Latest Session Summary")
 
     choice = input("Choose an option: ")
 
@@ -99,7 +101,10 @@ def main():
         if result["score"] < 7:
             add_weak_topic(topic)
             print(f"\n'{topic}' added to weak topics.")
-            
+
+    elif choice == "8":
+        print(get_latest_session_summary())
+
     else:
         print("Invalid choice. Please select 1, 2, 3, 4, 5, or 6.")
 
