@@ -4,6 +4,7 @@ from agent.memory import add_study_session, add_weak_topic, view_progress
 from agent.memory import add_study_session, add_weak_topic, view_progress, get_recommended_topic
 from agent.evaluator import evaluate_answer
 from agent.memory import get_latest_session_summary
+from agent.roadmap import generate_learning_path
 
 def main():
     print("Welcome to KB AI DevOps Study Buddy")
@@ -15,6 +16,7 @@ def main():
     print("6. Generate Daily Plan from Weak Topic")
     print("7. Evaluate Interview Answer")
     print("8. View Latest Session Summary")
+    print("9. Generate Learning Path")
 
     choice = input("Choose an option: ")
 
@@ -105,6 +107,14 @@ def main():
     elif choice == "8":
         print(get_latest_session_summary())
 
+    elif choice == "9":
+        path = generate_learning_path()
+
+        print("\nRecommended Learning Path:\n")
+
+        for index, item in enumerate(path, start=1):
+            print(f"{index}. {item}")
+            
     else:
         print("Invalid choice. Please select 1, 2, 3, 4, 5, or 6.")
 
