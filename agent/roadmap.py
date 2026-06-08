@@ -44,4 +44,5 @@ def generate_learning_path():
         else:
             learning_path.append(topic)
 
+    learning_path = list(dict.fromkeys(learning_path))
     return learning_path

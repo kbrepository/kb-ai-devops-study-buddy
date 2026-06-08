@@ -21,6 +21,16 @@ st.set_page_config(
 
 st.title("🤖 KB AI DevOps Study Buddy")
 st.write("Your personal AWS, Terraform, Kubernetes and DevOps interview preparation assistant.")
+st.markdown("""
+### What this app does
+
+- Creates DevOps study plans
+- Generates interview questions
+- Evaluates your answers
+- Tracks weak topics
+- Builds a learning path
+- Prepares you for AWS, Terraform and Kubernetes interviews
+""")
 
 menu = st.sidebar.radio(
     "Choose Feature",
