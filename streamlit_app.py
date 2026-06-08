@@ -11,6 +11,7 @@ from agent.memory import (
 )
 from agent.evaluator import evaluate_answer
 from agent.roadmap import generate_learning_path
+from agent.bedrock_client import generate_ai_interview_questions
 
 
 st.set_page_config(
@@ -42,6 +43,7 @@ menu = st.sidebar.radio(
         "Weak Topics",
         "Learning Path",
         "Session Summary",
+        "AI Interview Questions",
     ],
 )
 
@@ -133,3 +135,19 @@ elif menu == "Learning Path":
 elif menu == "Session Summary":
     st.header("📝 Latest Session Summary")
     st.text(get_latest_session_summary())
+
+elif menu == "AI Interview Questions":
+    st.header("🤖 AI Interview Question Generator")
+
+    topic = st.text_input("Topic", placeholder="Example: Terraform State")
+    difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
+    count = st.slider("Number of questions", min_value=3, max_value=10, value=5)
+
+    if st.button("Generate AI Questions"):
+        with st.spinner("Generating questions using Amazon Bedrock..."):
+            try:
+                questions = generate_ai_interview_questions(topic, difficulty, count)
+                st.markdown(questions)
+            except Exception as error:
+                st.error("Failed to generate questions from Bedrock.")
+                st.exception(error)

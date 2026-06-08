@@ -2,11 +2,14 @@
     "completed_topics": [
         "Kubernetes",
         "Terraform state",
-        "Terraform State"
+        "Terraform State",
+        "S3 "
     ],
     "weak_topics": [
         "Terraform state",
-        "autoscaling"
+        "autoscaling",
+        "terraform state",
+        "github actions"
     ],
     "study_sessions": [
         {
@@ -26,6 +29,24 @@
             "duration": 45,
             "difficulty": "beginner",
             "date": "2026-06-08 07:29:21"
+        },
+        {
+            "topic": "S3 ",
+            "duration": 45,
+            "difficulty": "beginner",
+            "date": "2026-06-08 07:33:26"
+        },
+        {
+            "topic": "Terraform State",
+            "duration": 45,
+            "difficulty": "beginner",
+            "date": "2026-06-08 13:20:01"
+        },
+        {
+            "topic": "Terraform State",
+            "duration": 45,
+            "difficulty": "intermediate",
+            "date": "2026-06-08 17:20:47"
         }
     ]
 }
