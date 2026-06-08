@@ -1,6 +1,7 @@
 import os
 import boto3
 from dotenv import load_dotenv
+from agent.usage_tracker import log_bedrock_usage
 
 
 load_dotenv()
@@ -38,5 +39,15 @@ Return only numbered questions.
             "temperature": 0.7,
         },
     )
+    output_text = response["output"]["message"]["content"][0]["text"]
 
-    return response["output"]["message"]["content"][0]["text"]
+    log_bedrock_usage(
+        feature="AI Interview Questions",
+        model_id=model_id,
+        input_text=prompt,
+        output_text=output_text,
+    )
+
+    return output_text
+
+    # return response["output"]["message"]["content"][0]["text"]

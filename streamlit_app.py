@@ -12,7 +12,7 @@ from agent.memory import (
 from agent.evaluator import evaluate_answer
 from agent.roadmap import generate_learning_path
 from agent.bedrock_client import generate_ai_interview_questions
-
+from agent.usage_tracker import get_usage_summary
 
 st.set_page_config(
     page_title="KB AI DevOps Study Buddy",
@@ -44,6 +44,7 @@ menu = st.sidebar.radio(
         "Learning Path",
         "Session Summary",
         "AI Interview Questions",
+        "Bedrock Usage Dashboard",
     ],
 )
 
@@ -151,3 +152,17 @@ elif menu == "AI Interview Questions":
             except Exception as error:
                 st.error("Failed to generate questions from Bedrock.")
                 st.exception(error)
+
+elif menu == "Bedrock Usage Dashboard":
+    st.header("📈 Bedrock Usage Dashboard")
+
+    summary = get_usage_summary()
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Requests", summary["total_requests"])
+    col2.metric("Estimated Input Tokens", summary["total_input_tokens"])
+    col3.metric("Estimated Output Tokens", summary["total_output_tokens"])
+
+    st.subheader("Usage Records")
+    st.dataframe(summary["records"])
