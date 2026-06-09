@@ -51,3 +51,67 @@ Return only numbered questions.
     return output_text
 
     # return response["output"]["message"]["content"][0]["text"]
+
+def evaluate_answer_with_ai(topic, question, user_answer, difficulty):
+    region = os.getenv("AWS_REGION", "us-east-1")
+    model_id = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
+
+    client = boto3.client("bedrock-runtime", region_name=region)
+
+    prompt = f"""
+You are a strict but supportive DevOps interview evaluator.
+
+Evaluate the candidate's answer.
+
+Topic: {topic}
+Difficulty: {difficulty}
+
+Interview Question:
+{question}
+
+Candidate Answer:
+{user_answer}
+
+Return the response in this format:
+
+Score: <score>/10
+
+Strengths:
+- point 1
+- point 2
+
+Missing Points:
+- point 1
+- point 2
+
+Improved Answer:
+Write a better interview-ready answer in simple language.
+
+Next Study Suggestion:
+Suggest one topic the candidate should revise next.
+"""
+
+    response = client.converse(
+        modelId=model_id,
+        messages=[
+            {
+                "role": "user",
+                "content": [{"text": prompt}],
+            }
+        ],
+        inferenceConfig={
+            "maxTokens": 900,
+            "temperature": 0.4,
+        },
+    )
+
+    output_text = response["output"]["message"]["content"][0]["text"]
+
+    log_bedrock_usage(
+        feature="AI Answer Evaluation",
+        model_id=model_id,
+        input_text=prompt,
+        output_text=output_text,
+    )
+
+    return output_text

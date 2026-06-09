@@ -5,5 +5,12 @@
         "model_id": "amazon.nova-lite-v1:0",
         "estimated_input_tokens": 86,
         "estimated_output_tokens": 238
+    },
+    {
+        "date": "2026-06-09 22:40:39",
+        "feature": "AI Answer Evaluation",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 158,
+        "estimated_output_tokens": 458
     }
 ]

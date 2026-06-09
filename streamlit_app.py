@@ -11,8 +11,9 @@ from agent.memory import (
 )
 from agent.evaluator import evaluate_answer
 from agent.roadmap import generate_learning_path
-from agent.bedrock_client import generate_ai_interview_questions
+from agent.bedrock_client import generate_ai_interview_questions, evaluate_answer_with_ai
 from agent.usage_tracker import get_usage_summary
+
 
 st.set_page_config(
     page_title="KB AI DevOps Study Buddy",
@@ -45,6 +46,7 @@ menu = st.sidebar.radio(
         "Session Summary",
         "AI Interview Questions",
         "Bedrock Usage Dashboard",
+        "AI Answer Evaluation",
     ],
 )
 
@@ -166,3 +168,33 @@ elif menu == "Bedrock Usage Dashboard":
 
     st.subheader("Usage Records")
     st.dataframe(summary["records"])
+
+elif menu == "AI Answer Evaluation":
+    st.header("🧠 AI Answer Evaluation")
+
+    topic = st.text_input("Topic", placeholder="Example: Terraform State")
+    difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
+    question = st.text_area("Interview Question")
+    user_answer = st.text_area("Your Answer")
+
+    if st.button("Evaluate with AI"):
+        if not topic or not question or not user_answer:
+            st.warning("Please provide topic, question, and your answer.")
+        else:
+            with st.spinner("Evaluating answer using Amazon Bedrock..."):
+                try:
+                    feedback = evaluate_answer_with_ai(
+                        topic=topic,
+                        question=question,
+                        user_answer=user_answer,
+                        difficulty=difficulty,
+                    )
+
+                    st.markdown(feedback)
+
+                    add_weak_topic(topic)
+                    st.info(f"{topic} added to weak topics for revision tracking.")
+
+                except Exception as error:
+                    st.error("Failed to evaluate answer using Bedrock.")
+                    st.exception(error)
