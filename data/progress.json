@@ -48,6 +48,12 @@
             "duration": 45,
             "difficulty": "intermediate",
             "date": "2026-06-08 17:20:47"
+        },
+        {
+            "topic": "Kubernetes",
+            "duration": 45,
+            "difficulty": "beginner",
+            "date": "2026-06-12 18:13:43"
         }
     ]
 }

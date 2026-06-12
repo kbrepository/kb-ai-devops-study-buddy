@@ -19,5 +19,12 @@
         "model_id": "amazon.nova-lite-v1:0",
         "estimated_input_tokens": 196,
         "estimated_output_tokens": 410
+    },
+    {
+        "date": "2026-06-12 18:13:43",
+        "feature": "AI Study Plan",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 138,
+        "estimated_output_tokens": 754
     }
 ]

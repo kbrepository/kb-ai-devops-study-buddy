@@ -14,7 +14,11 @@ from agent.roadmap import generate_learning_path
 from agent.bedrock_client import generate_ai_interview_questions, evaluate_answer_with_ai
 from agent.usage_tracker import get_usage_summary
 from agent.evaluation_history import save_ai_evaluation, get_evaluation_history
-
+from agent.bedrock_client import (
+    generate_ai_interview_questions,
+    evaluate_answer_with_ai,
+    generate_ai_study_plan,
+)
 
 st.set_page_config(
     page_title="KB AI DevOps Study Buddy",
@@ -49,6 +53,7 @@ menu = st.sidebar.radio(
         "Bedrock Usage Dashboard",
         "AI Answer Evaluation",
         "Evaluation History",
+        "AI Study Plan",
     ],
 )
 
@@ -221,3 +226,26 @@ elif menu == "Evaluation History":
 
                 st.write("AI Feedback:")
                 st.markdown(item["ai_feedback"])
+
+elif menu == "AI Study Plan":
+    st.header("📘 AI Study Plan Generator")
+
+    recommended_topic = get_recommended_topic()
+    st.info(f"Recommended topic from weak topics: {recommended_topic}")
+
+    topic = st.text_input("Topic", value=recommended_topic)
+    duration = st.number_input("Duration in minutes", min_value=15, max_value=180, value=45)
+    difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
+
+    if st.button("Generate AI Study Plan"):
+        with st.spinner("Generating personalized study plan using Amazon Bedrock..."):
+            try:
+                plan = generate_ai_study_plan(topic, int(duration), difficulty)
+                st.markdown(plan)
+
+                add_study_session(topic, int(duration), difficulty)
+                st.success("AI study session saved.")
+
+            except Exception as error:
+                st.error("Failed to generate AI study plan.")
+                st.exception(error)
