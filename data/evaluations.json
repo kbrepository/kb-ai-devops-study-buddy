@@ -1,0 +1,10 @@
+[
+    {
+        "date": "2026-06-12 18:00:50",
+        "topic": "Terraform State",
+        "difficulty": "beginner",
+        "question": "What is terraform state?",
+        "user_answer": "Terraform state is the private, database-like record that acts as the single source of truth for your managed infrastructure, mapping your declarative code configuration to real-world cloud resources.",
+        "ai_feedback": "Score: 7/10\n\nStrengths:\n- The candidate correctly identifies Terraform state as a record that serves as the single source of truth for managed infrastructure.\n- They mention that it maps declarative code configuration to real-world cloud resources.\n\nMissing Points:\n- The candidate could have mentioned that Terraform state is stored in a local or remote backend by default.\n- They could have briefly explained the importance of the state file in ensuring consistency and preventing conflicts during infrastructure deployments.\n\nImproved Answer:\n\"Terraform state is a local or remote file that keeps track of the resources Terraform manages. It acts as the single source of truth, mapping your configuration code to the actual cloud resources. This file is crucial for ensuring consistency and preventing conflicts during infrastructure deployments. By default, Terraform stores the state file in a secure backend, such as an S3 bucket for AWS, to ensure it is accessible and protected.\"\n\nNext Study Suggestion:\nSuggest one topic the candidate should revise next.\n- The candidate should next study Terraform state management best practices, including remote state storage, state locking, and state file operations like state refresh, state pull, and state push. Understanding these practices will help them manage Terraform state more effectively and securely."
+    }
+]

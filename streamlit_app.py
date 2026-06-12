@@ -13,6 +13,7 @@ from agent.evaluator import evaluate_answer
 from agent.roadmap import generate_learning_path
 from agent.bedrock_client import generate_ai_interview_questions, evaluate_answer_with_ai
 from agent.usage_tracker import get_usage_summary
+from agent.evaluation_history import save_ai_evaluation, get_evaluation_history
 
 
 st.set_page_config(
@@ -47,6 +48,7 @@ menu = st.sidebar.radio(
         "AI Interview Questions",
         "Bedrock Usage Dashboard",
         "AI Answer Evaluation",
+        "Evaluation History",
     ],
 )
 
@@ -191,6 +193,8 @@ elif menu == "AI Answer Evaluation":
                     )
 
                     st.markdown(feedback)
+                    save_ai_evaluation(topic, difficulty, question, user_answer, feedback)
+                    st.success("AI evaluation saved.")
 
                     add_weak_topic(topic)
                     st.info(f"{topic} added to weak topics for revision tracking.")
@@ -198,3 +202,22 @@ elif menu == "AI Answer Evaluation":
                 except Exception as error:
                     st.error("Failed to evaluate answer using Bedrock.")
                     st.exception(error)
+
+elif menu == "Evaluation History":
+    st.header("📚 Evaluation History")
+
+    evaluations = get_evaluation_history()
+
+    if not evaluations:
+        st.info("No AI evaluations saved yet.")
+    else:
+        for item in reversed(evaluations):
+            with st.expander(f"{item['date']} | {item['topic']} | {item['difficulty']}"):
+                st.write("Question:")
+                st.write(item["question"])
+
+                st.write("Your Answer:")
+                st.write(item["user_answer"])
+
+                st.write("AI Feedback:")
+                st.markdown(item["ai_feedback"])
