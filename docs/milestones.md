@@ -1,107 +1,109 @@
-# Architecture
+# Project Milestones
 
-## Overview
+## Milestone 1
 
-KB AI DevOps Study Buddy is an AI-powered learning and interview preparation assistant built using Python, Streamlit, and Amazon Bedrock.
+Basic Study Plan Generator
 
-The application helps users:
+## Milestone 2
 
-* Generate study plans
-* Generate interview questions
-* Evaluate interview answers
-* Track learning progress
-* Track weak topics
-* Generate learning paths
-* Monitor Bedrock usage
+Interview Question Mode
 
----
+## Milestone 3
 
-## High Level Architecture
+Progress Memory using JSON
 
-User
-↓
-Streamlit UI
-↓
-Application Layer
-├── planner.py
-├── interviewer.py
-├── evaluator.py
-├── roadmap.py
-├── memory.py
-├── evaluation_history.py
-├── usage_tracker.py
-└── bedrock_client.py
-↓
-Storage Layer
-├── progress.json
-├── evaluations.json
-└── usage.json
-↓
-Amazon Bedrock
+## Milestone 4
 
----
+Weak Topic Recommendation Engine
 
-## Module Description
+## Milestone 5
 
-### planner.py
+Daily Study Plan Generation
 
-Responsible for generating study plans.
+## Milestone 6
 
-### interviewer.py
+Rule-Based Interview Evaluation Engine
 
-Generates interview questions using predefined question banks.
+## Milestone 7
 
-### evaluator.py
+Latest Session Summary
 
-Provides rule-based answer evaluation using keyword matching.
+## Milestone 8
 
-### roadmap.py
+Learning Path Generator
 
-Generates learning paths based on weak topics.
+## Milestone 9
 
-### memory.py
+Streamlit User Interface
 
-Stores:
+## Milestone 10
 
-* Completed topics
-* Weak topics
-* Study sessions
+Amazon Bedrock Integration
 
-### evaluation_history.py
+### Features Added
 
-Stores AI evaluation history for future review.
+* AI Interview Question Generator
 
-### usage_tracker.py
+## Milestone 11
 
-Tracks Amazon Bedrock usage and estimated token consumption.
+Bedrock Usage Dashboard
 
-### bedrock_client.py
+### Features Added
 
-Handles communication with Amazon Bedrock using the Converse API.
+* Request Tracking
+* Token Estimation
+* Usage Monitoring
 
----
+## Milestone 12
 
-## Storage Layer
+AI Answer Evaluation
 
-### progress.json
+### Features Added
 
-Stores user learning progress.
+* AI Feedback
+* AI Scoring
+* Weak Topic Detection
 
-### evaluations.json
+## Milestone 13
 
-Stores AI evaluation results.
+Evaluation History
 
-### usage.json
+### Features Added
 
-Stores Bedrock usage statistics.
+* Evaluation Storage
+* Historical Review
 
----
+## Milestone 14
 
-## Future Enhancements
+AI Study Plan Generator
 
-* Retrieval Augmented Generation (RAG)
-* PDF Upload Support
-* Resume-Based Interview Questions
-* EKS Troubleshooting Coach
-* Personalized Learning Analytics
-* Cloud Cost Estimation Dashboard
+### Features Added
+
+* Personalized Study Plans
+* Weak Topic Awareness
+
+## Upcoming Milestones
+
+### Milestone 15
+
+Project Documentation
+
+### Milestone 16
+
+Architecture Diagram
+
+### Milestone 17
+
+RAG Integration
+
+### Milestone 18
+
+Deployment
+
+### Milestone 19
+
+Medium Blog Series
+
+### Milestone 20
+
+Advanced Agent Capabilities
