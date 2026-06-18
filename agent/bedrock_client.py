@@ -172,8 +172,8 @@ Keep it practical and focused on AWS, Terraform, Kubernetes, CI/CD, Linux, and t
     return output_text
 
 def answer_from_notes(question):
-    region = os.getenv("AWS_REGION")
-    model_id = os.getenv("BEDROCK_MODEL_ID")
+    region = os.getenv("AWS_REGION", "us-east-1")
+    model_id = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
 
     client = boto3.client(
         "bedrock-runtime",

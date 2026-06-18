@@ -26,5 +26,26 @@
         "model_id": "amazon.nova-lite-v1:0",
         "estimated_input_tokens": 138,
         "estimated_output_tokens": 754
+    },
+    {
+        "date": "2026-06-18 17:01:43",
+        "feature": "RAG Notes Search",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 48,
+        "estimated_output_tokens": 204
+    },
+    {
+        "date": "2026-06-18 17:06:08",
+        "feature": "RAG Notes Search",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 5270,
+        "estimated_output_tokens": 130
+    },
+    {
+        "date": "2026-06-18 17:06:22",
+        "feature": "RAG Notes Search",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 5270,
+        "estimated_output_tokens": 132
     }
 ]

@@ -18,6 +18,7 @@ from agent.bedrock_client import (
     generate_ai_interview_questions,
     evaluate_answer_with_ai,
     generate_ai_study_plan,
+    answer_from_notes
 )
 
 st.set_page_config(
