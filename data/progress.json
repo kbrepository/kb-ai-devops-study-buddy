@@ -3,7 +3,8 @@
         "Kubernetes",
         "Terraform state",
         "Terraform State",
-        "S3 "
+        "S3 ",
+        "LLM"
     ],
     "weak_topics": [
         "Terraform state",
@@ -54,6 +55,12 @@
             "duration": 45,
             "difficulty": "beginner",
             "date": "2026-06-12 18:13:43"
+        },
+        {
+            "topic": "LLM",
+            "duration": 45,
+            "difficulty": "beginner",
+            "date": "2026-06-18 23:32:42"
         }
     ]
 }

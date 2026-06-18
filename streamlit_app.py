@@ -21,15 +21,11 @@ from agent.bedrock_client import (
     answer_from_notes
 )
 
-st.set_page_config(
-    page_title="KB AI DevOps Study Buddy",
-    page_icon="🤖",
-    layout="wide",
-)
 
-st.title("🤖 KB AI DevOps Study Buddy")
-st.write("Your personal AWS, Terraform, Kubernetes and DevOps interview preparation assistant.")
-st.markdown("""
+def show_introduction():
+    st.title("🤖 KB AI DevOps Study Buddy")
+    st.write("Your personal AWS, Terraform, Kubernetes and DevOps interview preparation assistant.")
+    st.markdown("""
 ### What this app does
 
 - Creates DevOps study plans
@@ -39,6 +35,15 @@ st.markdown("""
 - Builds a learning path
 - Prepares you for AWS, Terraform and Kubernetes interviews
 """)
+
+
+st.set_page_config(
+    page_title="KB AI DevOps Study Buddy",
+    page_icon="🤖",
+    layout="wide",
+)
+
+show_introduction()
 
 menu = st.sidebar.radio(
     "Choose Feature",
