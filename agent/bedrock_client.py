@@ -3,7 +3,7 @@ import boto3
 from dotenv import load_dotenv
 from agent.usage_tracker import log_bedrock_usage
 from agent.memory import view_progress
-from agent.retriever import search_notes
+from agent.retriever import search_notes, format_search_results
 
 load_dotenv()
 
@@ -180,7 +180,9 @@ def answer_from_notes(question):
         region_name=region
     )
 
-    notes = search_notes(question)
+    # notes = search_notes(question)
+    results = search_notes(question)
+    notes = format_search_results(results)
 
     prompt = f"""
 Answer the question using the provided notes.
