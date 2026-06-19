@@ -28,24 +28,73 @@ def split_markdown_into_chunks(content):
     return chunks
 
 
-def search_notes(query):
-    normalized_query = normalize_text(query)
-    results = []
+# def search_notes(query):
+#     normalized_query = normalize_text(query)
+#     results = []
+
+#     for file in KNOWLEDGE_BASE.glob("*.md"):
+#         content = file.read_text()
+#         chunks = split_markdown_into_chunks(content)
+
+#         for chunk in chunks:
+#             normalized_chunk = normalize_text(chunk)
+
+#             if normalized_query in normalized_chunk:
+#                 results.append({
+#                     "source": file.name,
+#                     "content": chunk
+#                 })
+
+#     return results
+
+
+###     Updated function can match related words. Even if exact phrase is not found, related words can still match.
+### This fixes cases like:
+####   Question: Explain AWS cloud platform
+####   Note section: What is AWS
+
+
+def get_keywords(text):
+    normalized = normalize_text(text)
+    words = normalized.split()
+
+    stopwords = {
+        "what", "is", "the", "a", "an", "and", "or", "of", "to", "in",
+        "for", "on", "with", "how", "why", "explain", "tell", "me", "about"
+    }
+
+    return set(word for word in words if word not in stopwords)
+
+
+def search_notes(query, top_k=3):
+    query_keywords = get_keywords(query)
+    scored_results = []
 
     for file in KNOWLEDGE_BASE.glob("*.md"):
         content = file.read_text()
         chunks = split_markdown_into_chunks(content)
 
         for chunk in chunks:
-            normalized_chunk = normalize_text(chunk)
+            chunk_keywords = get_keywords(chunk)
+            matched_keywords = query_keywords.intersection(chunk_keywords)
 
-            if normalized_query in normalized_chunk:
-                results.append({
+            if matched_keywords:
+                score = len(matched_keywords)
+
+                scored_results.append({
                     "source": file.name,
-                    "content": chunk
+                    "score": score,
+                    "matched_keywords": list(matched_keywords),
+                    "content": chunk,
                 })
 
-    return results
+    scored_results = sorted(
+        scored_results,
+        key=lambda item: item["score"],
+        reverse=True
+    )
+
+    return scored_results[:top_k]
 
 
 def format_search_results(results):
@@ -56,6 +105,8 @@ def format_search_results(results):
 
     for result in results:
         formatted += f"\nSource: {result['source']}\n"
+        formatted += f"Score: {result['score']}\n"
+        formatted += f"Matched Keywords: {', '.join(result['matched_keywords'])}\n\n"
         formatted += result["content"]
         formatted += "\n---\n"
 
