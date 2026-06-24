@@ -10,13 +10,34 @@ def normalize_text(text):
     text = re.sub(r"[^\w\s]", "", text)
     return text
 
+def split_text_by_size(text, max_words=120):
+    words = text.split()
+    chunks = []
+
+    for index in range(0, len(words), max_words):
+        chunk = " ".join(words[index:index + max_words])
+        chunks.append(chunk)
+
+    return chunks
+
 
 def split_markdown_into_chunks(content):
+    lines = content.splitlines()
+    has_headings = any(
+        line.startswith("## ") or line.startswith("### ")
+        for line in lines
+    )
+
+    if not has_headings:
+        return split_text_by_size(content)
+
     chunks = []
     current_chunk = []
 
-    for line in content.splitlines():
-        if line.startswith("## ") and current_chunk:
+    for line in lines:
+        is_heading = line.startswith("## ") or line.startswith("### ")
+
+        if is_heading and current_chunk:
             chunks.append("\n".join(current_chunk))
             current_chunk = [line]
         else:
@@ -25,7 +46,33 @@ def split_markdown_into_chunks(content):
     if current_chunk:
         chunks.append("\n".join(current_chunk))
 
-    return chunks
+    refined_chunks = []
+
+    for chunk in chunks:
+        if len(chunk.split()) > 180:
+            refined_chunks.extend(split_text_by_size(chunk, max_words=120))
+        else:
+            refined_chunks.append(chunk)
+
+    return refined_chunks
+
+# def split_markdown_into_chunks(content):
+#     chunks = []
+#     current_chunk = []
+
+#     for line in content.splitlines():
+#         is_heading = line.startswith("## ") or line.startswith("### ")
+
+#         if is_heading and current_chunk:
+#             chunks.append("\n".join(current_chunk))
+#             current_chunk = [line]
+#         else:
+#             current_chunk.append(line)
+
+#     if current_chunk:
+#         chunks.append("\n".join(current_chunk))
+
+#     return chunks
 
 
 # def search_notes(query):
