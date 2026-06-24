@@ -1,109 +1,519 @@
 # Project Milestones
 
+## Project Goal
+
+Build an AI-powered DevOps learning and interview preparation assistant using:
+
+* Python
+* Streamlit
+* Amazon Bedrock
+* Retrieval Augmented Generation (RAG)
+* JSON-based memory and tracking
+
+The objective is to learn AI Engineering concepts through a practical project aligned with Cloud and DevOps skills.
+
+---
+
+# Phase 1 – Rule-Based Agent Foundation
+
 ## Milestone 1
 
 Basic Study Plan Generator
+
+### Concepts Learned
+
+* Functions
+* Modular Design
+* User Input Processing
+
+### Features Added
+
+* Generate study plans
+* Topic-based learning plans
+
+---
 
 ## Milestone 2
 
 Interview Question Mode
 
+### Concepts Learned
+
+* Knowledge Representation
+* Static Question Banks
+
+### Features Added
+
+* Generate interview questions
+* Topic-specific preparation
+
+---
+
 ## Milestone 3
 
 Progress Memory using JSON
+
+### Concepts Learned
+
+* Persistent Storage
+* State Management
+
+### Features Added
+
+* progress.json
+* Study session tracking
+* Weak topic storage
+
+---
 
 ## Milestone 4
 
 Weak Topic Recommendation Engine
 
+### Concepts Learned
+
+* Recommendation Logic
+* Learning Feedback Loops
+
+### Features Added
+
+* Weak topic tracking
+* Recommended next topic
+
+---
+
 ## Milestone 5
 
-Daily Study Plan Generation
+Daily Study Plan Generator
+
+### Concepts Learned
+
+* Planning Systems
+* Personalized Learning Paths
+
+### Features Added
+
+* Daily learning recommendations
+
+---
 
 ## Milestone 6
 
 Rule-Based Interview Evaluation Engine
 
+### Concepts Learned
+
+* Evaluation Logic
+* Keyword-Based Assessment
+
+### Features Added
+
+* Answer scoring
+* Missing concept detection
+* Weak topic updates
+
+---
+
 ## Milestone 7
 
 Latest Session Summary
+
+### Concepts Learned
+
+* Session Analytics
+* Learning Review
+
+### Features Added
+
+* Study session summary
+* Weak topic overview
+
+---
 
 ## Milestone 8
 
 Learning Path Generator
 
+### Concepts Learned
+
+* Planning
+* Goal Decomposition
+
+### Features Added
+
+* Personalized learning roadmap
+
+---
+
+# Phase 2 – User Interface
+
 ## Milestone 9
 
 Streamlit User Interface
 
+### Concepts Learned
+
+* Frontend Development
+* State-Aware UI Design
+
+### Features Added
+
+* Streamlit application
+* Navigation menu
+* Interactive learning dashboard
+
+---
+
 ## Milestone 10
 
+UI Improvements and Documentation
+
+### Concepts Learned
+
+* User Experience
+* Documentation Practices
+
+### Features Added
+
+* Homepage improvements
+* Project documentation structure
+
+---
+
+# Phase 3 – Amazon Bedrock Integration
+
+## Milestone 11
+
 Amazon Bedrock Integration
+
+### Concepts Learned
+
+* Foundation Models
+* Prompt Engineering
+* Converse API
 
 ### Features Added
 
 * AI Interview Question Generator
 
-## Milestone 11
-
-Bedrock Usage Dashboard
-
-### Features Added
-
-* Request Tracking
-* Token Estimation
-* Usage Monitoring
+---
 
 ## Milestone 12
 
-AI Answer Evaluation
+Bedrock Usage Dashboard
+
+### Concepts Learned
+
+* AI Observability
+* Cost Awareness
+* Usage Tracking
 
 ### Features Added
 
-* AI Feedback
-* AI Scoring
-* Weak Topic Detection
+* usage.json
+* Request tracking
+* Token estimation
+* Usage dashboard
+
+---
 
 ## Milestone 13
 
-Evaluation History
+AI Answer Evaluation
+
+### Concepts Learned
+
+* LLM-Based Assessment
+* Structured Prompt Design
 
 ### Features Added
 
-* Evaluation Storage
-* Historical Review
+* AI scoring
+* AI feedback
+* Improved answer generation
+* Weak topic recommendations
+
+---
 
 ## Milestone 14
 
-AI Study Plan Generator
+Evaluation History
+
+### Concepts Learned
+
+* Historical Analysis
+* Learning Progress Tracking
 
 ### Features Added
 
-* Personalized Study Plans
-* Weak Topic Awareness
+* evaluations.json
+* Evaluation history dashboard
 
-## Upcoming Milestones
+---
 
-### Milestone 15
+## Milestone 15
+
+AI Study Plan Generator
+
+### Concepts Learned
+
+* Personalized Learning Systems
+* Context-Aware Prompting
+
+### Features Added
+
+* AI-generated study plans
+* Weak-topic-aware recommendations
+
+---
+
+# Phase 4 – Documentation and Architecture
+
+## Milestone 16
 
 Project Documentation
 
-### Milestone 16
+### Concepts Learned
 
-Architecture Diagram
+* Technical Writing
+* Project Documentation
 
-### Milestone 17
+### Features Added
 
-RAG Integration
+* architecture.md
+* milestones.md
+* bedrock-setup.md
+* cost-and-usage.md
 
-### Milestone 18
+---
+
+## Milestone 17
+
+Architecture and GitHub Improvements
+
+### Concepts Learned
+
+* System Design Communication
+
+### Features Added
+
+* README improvements
+* Screenshots
+* Architecture documentation
+
+---
+
+# Phase 5 – Retrieval Augmented Generation (RAG)
+
+## Milestone 18
+
+RAG V0 – Knowledge Base Assistant
+
+### Concepts Learned
+
+* Retrieval Augmented Generation
+* Context Injection
+
+### Features Added
+
+* knowledge_base/
+* Notes Assistant
+* Markdown-based retrieval
+
+### Key Learning
+
+Retrieval is NOT the same as the LLM.
+
+The retriever decides what information reaches the model.
+
+---
+
+## Milestone 19
+
+RAG V1 – Retrieval Improvements
+
+### Concepts Learned
+
+* Text Normalization
+* Chunking
+* Retrieval Debugging
+
+### Features Added
+
+* Query normalization
+* Markdown section chunking
+* Source tracking
+* Retrieved context visibility
+
+### Important Discovery
+
+A single character such as:
+
+?
+.
+,
+!
+
+can affect retrieval quality.
+
+This highlighted why production RAG systems are difficult.
+
+---
+
+## Milestone 20
+
+RAG V1.1 – Keyword Scoring Retrieval
+
+### Concepts Learned
+
+* Lexical Search
+* Search Ranking
+* Relevance Scoring
+
+### Features Added
+
+* Keyword extraction
+* Overlap scoring
+* Ranked retrieval
+* Top-K search
+
+### Key Learning
+
+Lexical Search:
+
+Query
+↓
+Keyword Matching
+↓
+Ranked Results
+
+Vector Search:
+
+Query
+↓
+Embedding
+↓
+Semantic Similarity
+↓
+Ranked Results
+
+---
+
+# Upcoming Milestones
+
+## Milestone 21
+
+RAG V2 – Semantic Search
+
+Potential Topics:
+
+* Embeddings
+* Vector Representations
+* Similarity Search
+
+---
+
+## Milestone 22
+
+RAG V3 – Vector Database
+
+Potential Technologies:
+
+* ChromaDB
+* FAISS
+* OpenSearch
+* Pinecone
+
+---
+
+## Milestone 23
+
+PDF Knowledge Base
+
+Features:
+
+* PDF Upload
+* PDF Chunking
+* PDF Retrieval
+
+---
+
+## Milestone 24
+
+Resume-Based Interview Assistant
+
+Features:
+
+* Resume Analysis
+* Personalized Interview Questions
+* Gap Analysis
+
+---
+
+## Milestone 25
 
 Deployment
 
-### Milestone 19
+Options:
+
+* Streamlit Cloud
+* EC2
+* ECS Fargate
+* App Runner
+
+---
+
+## Milestone 26
 
 Medium Blog Series
 
-### Milestone 20
+Planned Topics:
 
-Advanced Agent Capabilities
+* Building an AI DevOps Study Buddy
+* What I Learned About AI Agents
+* Why RAG Is Hard in Production
+* Retrieval Is Not Equal To The LLM
+* Lexical Search vs Vector Search
+* Chunking and Context Windows
+* Observability in AI Applications
+* Building RAG Using Amazon Bedrock
+
+---
+
+# Current Project Status
+
+Current Stage:
+
+Phase 5 – RAG V1.1
+
+Current Capabilities:
+
+✓ Study Planning
+
+✓ AI Study Planning
+
+✓ Interview Question Generation
+
+✓ AI Interview Question Generation
+
+✓ Rule-Based Evaluation
+
+✓ AI Evaluation
+
+✓ Evaluation History
+
+✓ Learning Paths
+
+✓ Usage Dashboard
+
+✓ Amazon Bedrock Integration
+
+✓ RAG Knowledge Base
+
+✓ Chunking
+
+✓ Keyword Scoring Retrieval
+
+Next Major Learning Objective:
+
+Semantic Search and Embeddings
