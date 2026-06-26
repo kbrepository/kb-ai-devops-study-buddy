@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from agent.usage_tracker import log_bedrock_usage
 from agent.memory import view_progress
 from agent.retriever import search_notes, format_search_results
+from agent.semantic_search import semantic_search, format_semantic_results
 
 load_dotenv()
 
@@ -217,3 +218,48 @@ say so clearly.
     )
 
     return output
+
+def answer_from_notes_semantic(question):
+    region = os.getenv("AWS_REGION", "us-east-1")
+    model_id = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
+
+    client = boto3.client(
+        "bedrock-runtime",
+        region_name=region
+    )
+
+    results = semantic_search(question, top_k=3)
+    notes = format_semantic_results(results)
+
+    prompt = f"""
+Answer the question using the provided notes.
+
+Notes:
+{notes}
+
+Question:
+{question}
+
+If the answer is not found in the notes, say so clearly.
+"""
+
+    response = client.converse(
+        modelId=model_id,
+        messages=[
+            {
+                "role": "user",
+                "content": [{"text": prompt}],
+            }
+        ]
+    )
+
+    output = response["output"]["message"]["content"][0]["text"]
+
+    log_bedrock_usage(
+        feature="Semantic RAG Notes Search",
+        model_id=model_id,
+        input_text=prompt,
+        output_text=output,
+    )
+
+    return output, results, notes
