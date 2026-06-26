@@ -8,6 +8,13 @@ Amazon Web Services (AWS) is the world's most comprehensive and broadly adopted 
 
 ## Identity and Access Management (IAM)
 
+### EC2 Access to S3
+
+EC2 instances should access S3 using IAM roles instead of long-lived access keys. Attach an instance profile to the EC2 instance with the minimum required S3 permissions. This follows the principle of least privilege.
+
+For private connectivity, use an S3 Gateway VPC Endpoint so traffic between EC2 and S3 does not need to go through the public internet.
+
+Bucket policies can be used to restrict access to specific IAM roles, VPC endpoints, accounts, or conditions.
 ### Core IAM Concepts
 IAM controls who (authentication) and what (authorization) can access AWS resources. It is global — not region-specific.
 
