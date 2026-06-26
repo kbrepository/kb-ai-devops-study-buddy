@@ -11,14 +11,15 @@ from agent.memory import (
 )
 from agent.evaluator import evaluate_answer
 from agent.roadmap import generate_learning_path
-from agent.bedrock_client import generate_ai_interview_questions, evaluate_answer_with_ai
+# from agent.bedrock_client import generate_ai_interview_questions, evaluate_answer_with_ai
 from agent.usage_tracker import get_usage_summary
 from agent.evaluation_history import save_ai_evaluation, get_evaluation_history
 from agent.bedrock_client import (
     generate_ai_interview_questions,
     evaluate_answer_with_ai,
     generate_ai_study_plan,
-    answer_from_notes
+    answer_from_notes,
+    answer_from_notes_semantic,
 )
 
 st.set_page_config(
@@ -55,7 +56,7 @@ menu = st.sidebar.radio(
         "AI Answer Evaluation",
         "Evaluation History",
         "AI Study Plan",
-        "Notes Assistant"
+        "AI Notes Assistant (Semantic RAG)"
     ],
 )
 
@@ -252,11 +253,44 @@ elif menu == "AI Study Plan":
                 st.error("Failed to generate AI study plan.")
                 st.exception(error)
 
-elif menu == "Notes Assistant":
+# elif menu == "Notes Assistant":
+#     question = st.text_input(
+#         "Ask a question"
+#     )
+
+#     if st.button("Search Notes"):
+#         answer = answer_from_notes(question)
+#         st.markdown(answer)
+elif menu == "AI Notes Assistant (Semantic RAG)":
+    st.header("AI Notes Assistant (Semantic RAG)")
+
     question = st.text_input(
-        "Ask a question"
+        "Ask a question",
+        placeholder="Example: How should EC2 securely access S3?"
     )
 
     if st.button("Search Notes"):
-        answer = answer_from_notes(question)
-        st.markdown(answer)
+        if not question:
+            st.warning("Please enter a question.")
+        else:
+            with st.spinner("Searching notes using semantic retrieval..."):
+                try:
+                    answer, results, context = answer_from_notes_semantic(question)
+
+                    st.subheader("Answer")
+                    st.markdown(answer)
+
+                    with st.expander("Retrieved Chunks"):
+                        for item in results:
+                            st.markdown(f"### Source: {item['source']}")
+                            st.write(f"Chunk ID: {item['chunk_id']}")
+                            st.write(f"Similarity Score: {item['score']:.4f}")
+                            st.write(item["content"])
+                            st.divider()
+
+                    with st.expander("Full Context Sent to Bedrock"):
+                        st.code(context)
+
+                except Exception as error:
+                    st.error("Failed to answer using Semantic RAG.")
+                    st.exception(error)
