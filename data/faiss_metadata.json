@@ -1,0 +1,617 @@
+[
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 0,
+        "content": "# Kubernetes Knowledge Base\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 1,
+        "content": "## What is Kubernetes\n\nKubernetes (K8s) is an open-source container orchestration platform originally developed by Google and donated to the CNCF (Cloud Native Computing Foundation). It automates the deployment, scaling, and management of containerized applications. Kubernetes abstracts away the underlying infrastructure, allowing applications to run consistently across on-premises, cloud, and hybrid environments.\n\nKey design philosophy: declarative configuration. You describe the desired state of your system, and Kubernetes continuously works to maintain that state.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 2,
+        "content": "## Architecture\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 3,
+        "content": "### Control Plane Components The control plane manages the cluster and makes global decisions about scheduling, scaling, and responding to cluster events. **kube-apiserver:** The front end of the Kubernetes control plane. All communication \u2014 internal and external \u2014 passes through the API server. It validates and processes REST requests, updating the cluster state in etcd. Horizontally scalable. **etcd:** Highly available, distributed key-value store. The single source of truth for all cluster state. All cluster data (pods, services, configs) is stored here. Backups of etcd are critical for disaster recovery. **kube-scheduler:** Watches for newly created pods with no assigned node and selects the best node based on resource requirements, affinity/anti-affinity rules, taints, tolerations, and policies. **kube-controller-manager:** Runs controller processes that watch"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 4,
+        "content": "the cluster state and make changes to drive it toward the desired state. Examples: - Node Controller \u2014 monitors node health - Deployment Controller \u2014 manages ReplicaSets - Endpoint Controller \u2014 manages Service-to-Pod endpoint mapping - Job Controller \u2014 manages batch Jobs **cloud-controller-manager:** Integrates with cloud provider APIs. Manages cloud-specific controllers for nodes, routes, and load balancers. Separates cloud-provider logic from core Kubernetes code."
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 5,
+        "content": "### Node Components\n\nNodes (formerly called minions) are the worker machines that run containerized workloads.\n\n**kubelet:** Agent running on every node. Ensures containers described in PodSpecs are running and healthy. Communicates with the API server. Does not manage containers not created by Kubernetes.\n\n**kube-proxy:** Network proxy running on each node. Maintains network rules (iptables or IPVS) to route traffic to Services. Handles connection forwarding.\n\n**Container Runtime:** The software responsible for running containers. Kubernetes supports any runtime implementing the Container Runtime Interface (CRI). Common runtimes: containerd (default in modern clusters), CRI-O, Docker Engine (via dockershim, deprecated in K8s 1.24).\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 6,
+        "content": "## Core Workload Objects\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 7,
+        "content": "### Pod\n\nA Pod is the smallest deployable unit in Kubernetes. It encapsulates one or more containers that share the same network namespace (same IP, same ports) and storage volumes. Containers in a pod communicate via `localhost`.\n\nPods are ephemeral \u2014 when a pod dies, it is not resurrected. Higher-level controllers manage pod lifecycle.\n\n```yaml\napiVersion: v1\nkind: Pod\nmetadata:\n  name: my-app\n  labels:\n    app: my-app\nspec:\n  containers:\n  - name: app\n    image: nginx:1.25\n    ports:\n    - containerPort: 80\n    resources:\n      requests:\n        memory: \"64Mi\"\n        cpu: \"250m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"500m\"\n```\n\n**Init Containers:** Run before app containers. Complete sequentially. Used for setup tasks like waiting for a database to be ready or copying config files.\n\n**Sidecar Containers:** Run alongside the main app container in the same pod. Common patterns: log shippers (Fluentd), service mesh proxies (Envoy/Istio), secret fetchers (Vault Agent).\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 8,
+        "content": "### Deployment\n\nA Deployment manages a ReplicaSet, which manages multiple identical pod replicas. Deployments support rolling updates and rollbacks.\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: my-app\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1\n      maxUnavailable: 0\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n      - name: app\n        image: my-app:v2\n```\n\n**Rolling Update Strategy:** Gradually replaces old pods with new ones. `maxSurge` controls how many extra pods can exist during update. `maxUnavailable` controls how many pods can be unavailable.\n\n**Rollback:** `kubectl rollout undo deployment/my-app` reverts to the previous revision. `kubectl rollout history deployment/my-app` shows revision history.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 9,
+        "content": "### StatefulSet\n\nStatefulSets manage stateful applications (databases, queues). Unlike Deployments, each pod gets a stable network identity (e.g., `pod-0`, `pod-1`) and dedicated persistent storage that follows the pod even after rescheduling.\n\nPods are created and deleted in order. Suitable for: MySQL, PostgreSQL, Cassandra, Kafka, Zookeeper, Redis Sentinel.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 10,
+        "content": "### DaemonSet\n\nEnsures a copy of a pod runs on every (or selected) node. Used for: log collectors (Fluentd, Filebeat), monitoring agents (Datadog, Prometheus Node Exporter), network plugins, storage plugins.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 11,
+        "content": "### Job and CronJob\n\n**Job:** Runs a pod to completion. Useful for batch processing, database migrations, report generation. Retries on failure. Can run pods in parallel.\n\n**CronJob:** Schedules Jobs on a cron schedule. Used for periodic tasks like backups, cleanup, report generation.\n\n```yaml\napiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: db-backup\nspec:\n  schedule: \"0 2 * * *\"\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          containers:\n          - name: backup\n            image: db-backup:latest\n          restartPolicy: OnFailure\n```\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 12,
+        "content": "## Services and Networking\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 13,
+        "content": "### Service\n\nA Service provides a stable IP address and DNS name for a set of pods, abstracting away pod churn. Services use label selectors to identify the pods they route to.\n\n**ClusterIP (default):** Internal-only virtual IP. Accessible only within the cluster. Used for communication between microservices.\n\n**NodePort:** Exposes the service on a static port on every node's IP. Accessible externally via `<NodeIP>:<NodePort>`. Port range: 30000\u201332767.\n\n**LoadBalancer:** Provisions a cloud load balancer (e.g., AWS ELB/NLB, GCP LB). External IP assigned. Most common way to expose production services. Each LoadBalancer service creates a separate cloud load balancer (can be costly at scale).\n\n**ExternalName:** Maps a service to an external DNS name. No proxy involved. Useful for accessing external services as if they were in-cluster.\n\n**Headless Services:** Set `clusterIP: None`. DNS returns pod IPs directly instead of a virtual IP. Used with StatefulSets for peer discovery.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 14,
+        "content": "### Ingress\n\nIngress manages external HTTP/HTTPS routing to multiple services within the cluster. Provides:\n- Host-based routing (`api.example.com` \u2192 api-service)\n- Path-based routing (`/api` \u2192 api-service, `/` \u2192 frontend-service)\n- TLS termination\n\nRequires an **Ingress Controller** to be deployed (nginx-ingress, AWS ALB Ingress Controller, Traefik, Istio Gateway). The controller watches Ingress resources and configures the underlying load balancer or proxy.\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: app-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rewrite-target: /\nspec:\n  rules:\n  - host: app.example.com\n    http:\n      paths:\n      - path: /api\n        pathType: Prefix\n        backend:\n          service:\n            name: api-service\n            port:\n              number: 80\n```\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 15,
+        "content": "### Network Policies\n\nNetwork Policies control traffic between pods and namespaces at Layer 3/4. By default, all pods can communicate with all other pods. Network Policies use label selectors to define ingress and egress rules. Requires a CNI plugin that supports Network Policy (Calico, Cilium, Weave Net).\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 16,
+        "content": "## Configuration and Secrets\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 17,
+        "content": "### ConfigMap\n\nConfigMaps store non-sensitive configuration data as key-value pairs. Can be consumed as environment variables, command-line arguments, or mounted as files.\n\n```yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  DATABASE_URL: \"postgres://db:5432/mydb\"\n  LOG_LEVEL: \"info\"\n```\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 18,
+        "content": "### Secret\n\nSecrets store sensitive data (passwords, tokens, TLS certificates). Encoded in base64 (not encrypted by default). Enable etcd encryption at rest for production security. Use external secret managers (AWS Secrets Manager + External Secrets Operator, HashiCorp Vault) for true secrets management.\n\nTypes of secrets: `Opaque` (generic), `kubernetes.io/tls` (TLS certs), `kubernetes.io/dockerconfigjson` (registry credentials), `kubernetes.io/service-account-token`.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 19,
+        "content": "## Storage\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 20,
+        "content": "### Volumes\n\nA Volume is a directory accessible to containers in a pod. Volumes outlive containers in the pod but not the pod itself.\n\nCommon volume types:\n- `emptyDir` \u2014 temporary storage on the node, deleted when pod dies\n- `hostPath` \u2014 mounts a file or directory from the host node\n- `configMap` / `secret` \u2014 mount config or secret data as files\n- `persistentVolumeClaim` \u2014 mounts persistent storage\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 21,
+        "content": "### Persistent Volumes (PV) and Persistent Volume Claims (PVC)\n\n**PersistentVolume (PV):** A piece of storage provisioned by an administrator or dynamically via a StorageClass. Independent of any pod.\n\n**PersistentVolumeClaim (PVC):** A request for storage by a user or pod. Binds to a PV that satisfies the requested capacity and access mode.\n\n**StorageClass:** Defines the provisioner and parameters for dynamic volume provisioning. When a PVC specifies a StorageClass, Kubernetes dynamically creates a PV.\n\n```yaml\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-pvc\nspec:\n  storageClassName: gp2\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 10Gi\n```\n\n**Access Modes:**\n- `ReadWriteOnce (RWO)` \u2014 single node read/write (EBS, gp2)\n- `ReadOnlyMany (ROX)` \u2014 many nodes read-only\n- `ReadWriteMany (RWX)` \u2014 many nodes read/write (EFS, NFS)\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 22,
+        "content": "## Scheduling\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 23,
+        "content": "### Resource Requests and Limits\n\n`requests` \u2014 minimum resources guaranteed to the container; used by the scheduler to place pods.\n`limits` \u2014 maximum resources the container can use.\n\nCPU is compressible (throttled when over limit). Memory is not compressible \u2014 exceeding memory limit causes OOMKilled.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 24,
+        "content": "### Node Affinity and Anti-Affinity\n\n**Node Affinity:** Constrains which nodes a pod can be scheduled on based on node labels.\n- `requiredDuringSchedulingIgnoredDuringExecution` \u2014 hard constraint\n- `preferredDuringSchedulingIgnoredDuringExecution` \u2014 soft constraint\n\n**Pod Affinity:** Schedule pods near (or away from) other pods based on labels.\n**Pod Anti-Affinity:** Spread pods across nodes or zones to improve availability.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 25,
+        "content": "### Taints and Tolerations\n\n**Taints** are applied to nodes to repel pods. Format: `key=value:effect`. Effects: `NoSchedule`, `PreferNoSchedule`, `NoExecute`.\n\n**Tolerations** are applied to pods to allow scheduling on tainted nodes.\n\nUse case: Dedicate nodes for specific workloads (GPU nodes, high-memory nodes), or mark nodes as unschedulable during maintenance.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 26,
+        "content": "### Priority and Preemption\n\nPriorityClasses assign priority values to pods. Higher-priority pods can preempt (evict) lower-priority pods if cluster resources are constrained. Useful for ensuring critical workloads always get scheduled.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 27,
+        "content": "## Autoscaling\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 28,
+        "content": "### Horizontal Pod Autoscaler (HPA)\n\nHPA automatically scales the number of pod replicas based on observed metrics (CPU, memory, or custom metrics). Requires Metrics Server.\n\n```yaml\napiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: my-app-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: my-app\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 60\n```\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 29,
+        "content": "### Vertical Pod Autoscaler (VPA)\n\nVPA automatically adjusts CPU and memory requests and limits based on actual usage. Can update pods in-place (Kubernetes 1.27+) or recommend values. Avoid using VPA and HPA on the same resource simultaneously.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 30,
+        "content": "### Cluster Autoscaler\n\nCluster Autoscaler automatically adjusts the number of nodes in the cluster. Scales up when pods are unschedulable due to resource constraints. Scales down when nodes are underutilized and pods can be rescheduled elsewhere.\n\nOn AWS, Cluster Autoscaler integrates with EC2 Auto Scaling Groups. KARPENTER is a modern alternative that is more efficient and flexible.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 31,
+        "content": "## Namespaces and RBAC\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 32,
+        "content": "### Namespaces\n\nNamespaces provide logical isolation within a cluster. Resource names must be unique within a namespace. Resources like Nodes and PersistentVolumes are cluster-scoped (not namespace-scoped).\n\nCommon namespace pattern: `default`, `kube-system` (system components), `kube-public`, and custom namespaces per team or environment.\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 33,
+        "content": "### RBAC (Role-Based Access Control)\n\nRBAC controls who can do what within a Kubernetes cluster.\n\n**Role:** Defines permissions within a specific namespace.\n**ClusterRole:** Defines permissions cluster-wide.\n**RoleBinding:** Grants a Role to a user or ServiceAccount in a namespace.\n**ClusterRoleBinding:** Grants a ClusterRole to a user or ServiceAccount cluster-wide.\n\n```yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  namespace: production\n  name: pod-reader\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n```\n\n**ServiceAccounts:** Identities for processes running in pods. Pods use ServiceAccounts to authenticate to the Kubernetes API. On AWS EKS, IRSA (IAM Roles for Service Accounts) links Kubernetes ServiceAccounts to AWS IAM Roles.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 34,
+        "content": "## Observability\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 35,
+        "content": "### Metrics\n\nKubernetes exposes metrics via the Metrics Server (resource metrics) and via custom metrics adapters (Prometheus Adapter). Prometheus + Grafana is the de facto monitoring stack.\n\nkube-state-metrics exposes metrics about Kubernetes object state (deployment replicas, pod phases, job completions).\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 36,
+        "content": "### Logging\n\nKubernetes does not provide a built-in centralized logging solution. Common patterns:\n- Node-level logging: DaemonSet agents (Fluentd, Fluent Bit, Filebeat) collect container logs from each node and ship to a central store (OpenSearch, Loki, Splunk, CloudWatch Logs)\n- Sidecar pattern: Log-shipping sidecar containers for applications with non-standard log formats\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 37,
+        "content": "### Probes\n\nProbes allow Kubernetes to detect container health and readiness.\n\n**Liveness Probe:** Kubernetes restarts the container if the probe fails. Used to detect deadlocks or crashed applications.\n\n**Readiness Probe:** Kubernetes removes the pod from Service endpoints if the probe fails. Used to signal when the app is not ready to receive traffic (during startup or under load).\n\n**Startup Probe:** Disables liveness and readiness probes until it succeeds. Used for slow-starting applications to avoid premature restarts.\n\nProbe types: HTTP GET, TCP Socket, Exec (command).\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 38,
+        "content": "## Kubernetes on AWS: EKS\n\nAmazon EKS (Elastic Kubernetes Service) is AWS's managed Kubernetes service. AWS manages the control plane (API server, etcd, controller manager). You manage worker nodes.\n\n**EKS Managed Node Groups:** AWS manages the lifecycle (provisioning, patching, scaling) of EC2 instances in the node group. Supports on-demand and Spot.\n\n**Fargate on EKS:** Run pods on serverless infrastructure. No node management. Pod-level isolation. Pay per vCPU and memory per second.\n\n**EKS Add-ons:** Managed versions of common cluster components: CoreDNS, kube-proxy, Amazon VPC CNI, EBS CSI driver.\n\n**AWS VPC CNI:** Assigns VPC IP addresses directly to pods, enabling pods to communicate natively within the VPC. Each pod gets a real VPC IP.\n\n**IRSA (IAM Roles for Service Accounts):** Associates a Kubernetes ServiceAccount with an AWS IAM Role using OIDC. Pods using the ServiceAccount automatically get temporary AWS credentials via STS. The recommended approach for AWS API access from pods (replaces node-level instance profiles).\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 39,
+        "content": "## Helm\n\nHelm is the package manager for Kubernetes. Helm Charts package Kubernetes manifests with templating. Charts can be installed, upgraded, and rolled back.\n\n```bash\nhelm install my-release bitnami/nginx\nhelm upgrade my-release bitnami/nginx --set replicaCount=3\nhelm rollback my-release 1\nhelm uninstall my-release\n```\n\n**Chart Structure:**\n- `Chart.yaml` \u2014 chart metadata\n- `values.yaml` \u2014 default configuration values\n- `templates/` \u2014 Kubernetes manifests with Go templating\n\n**Helm Repositories:** Public repos (Bitnami, Artifact Hub) and private repos. OCI-compatible registries (ECR, GHCR) can store Helm charts.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 40,
+        "content": "## GitOps and Continuous Delivery\n\n**ArgoCD** and **Flux** are popular GitOps controllers. They continuously sync Kubernetes cluster state with a Git repository. Any change merged to Git is automatically applied to the cluster. Provides auditability, easy rollback (revert the Git commit), and drift detection.\n\nGitOps principles: Git is the single source of truth. All changes via pull requests. Automated reconciliation loop.\n\n---\n"
+    },
+    {
+        "source": "kubernetes.md",
+        "chunk_id": 41,
+        "content": "## Security Best Practices\n\n- Enable RBAC and apply least privilege\n- Use Pod Security Standards (Baseline or Restricted) to enforce security context constraints\n- Never run containers as root; set `runAsNonRoot: true`\n- Use read-only root filesystems where possible: `readOnlyRootFilesystem: true`\n- Drop all Linux capabilities and add only what's needed: `capabilities: drop: [\"ALL\"]`\n- Scan container images for vulnerabilities (Trivy, Snyk, ECR image scanning)\n- Use Network Policies to restrict pod-to-pod traffic\n- Encrypt secrets at rest in etcd\n- Use External Secrets Operator or Vault Agent for production secrets management\n- Enable audit logging on the API server\n- Keep Kubernetes version up to date; supported versions receive security patches"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 0,
+        "content": "# Terraform Knowledge Base\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 1,
+        "content": "## What is Terraform\n\nTerraform is an open-source Infrastructure as Code (IaC) tool created by HashiCorp. It allows you to define, provision, and manage infrastructure across multiple cloud providers and on-premises environments using a declarative configuration language called HCL (HashiCorp Configuration Language). Terraform follows the principle of desired state configuration \u2014 you describe what infrastructure you want, and Terraform figures out how to create or modify existing resources to reach that state.\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 2,
+        "content": "## Core Concepts\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 3,
+        "content": "### Providers\nProviders are plugins that allow Terraform to interact with APIs of cloud platforms and services. Each provider defines a set of resource types and data sources. Common providers include AWS, Azure, GCP, Kubernetes, and GitHub.\n\n```hcl\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n```\n\nProviders must be declared and initialized before use. Terraform downloads provider plugins during `terraform init`. Provider versioning is critical for reproducibility \u2014 always pin provider versions in the `required_providers` block.\n\n```hcl\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n```\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 4,
+        "content": "### Resources\nResources are the fundamental building blocks in Terraform. Each resource block describes one or more infrastructure objects, such as an EC2 instance, an S3 bucket, or a VPC.\n\n```hcl\nresource \"aws_instance\" \"web\" {\n  ami           = \"ami-0c55b159cbfafe1f0\"\n  instance_type = \"t2.micro\"\n\n  tags = {\n    Name = \"WebServer\"\n  }\n}\n```\n\nResource syntax: `resource \"<PROVIDER>_<TYPE>\" \"<LOCAL_NAME>\"`. The local name is used to reference the resource within the same module.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 5,
+        "content": "### Data Sources\nData sources allow Terraform to fetch information about existing infrastructure that was not created by the current Terraform configuration. They are read-only.\n\n```hcl\ndata \"aws_ami\" \"latest_amazon_linux\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n}\n```\n\nData sources are commonly used to look up AMI IDs, availability zones, existing VPCs, or IAM policies.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 6,
+        "content": "### Variables\nInput variables make Terraform configurations flexible and reusable. Variables can have types, default values, descriptions, and validation rules.\n\n```hcl\nvariable \"instance_type\" {\n  description = \"EC2 instance type\"\n  type        = string\n  default     = \"t2.micro\"\n\n  validation {\n    condition     = contains([\"t2.micro\", \"t3.micro\", \"t3.small\"], var.instance_type)\n    error_message = \"Instance type must be t2.micro, t3.micro, or t3.small.\"\n  }\n}\n```\n\nVariable values can be passed via CLI flags (`-var`), `.tfvars` files, environment variables (`TF_VAR_name`), or interactive prompts.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 7,
+        "content": "### Outputs\nOutput values expose specific data from a Terraform configuration, making it available for use by other configurations, CI/CD pipelines, or humans.\n\n```hcl\noutput \"instance_public_ip\" {\n  description = \"Public IP of the EC2 instance\"\n  value       = aws_instance.web.public_ip\n}\n```\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 8,
+        "content": "### Locals\nLocal values are computed expressions assigned to a name, useful for avoiding repetition and simplifying complex expressions.\n\n```hcl\nlocals {\n  common_tags = {\n    Project     = \"MyApp\"\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n```\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 9,
+        "content": "## Terraform State\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 10,
+        "content": "### What is State\nTerraform state is a JSON file (typically `terraform.tfstate`) that maps real-world resources to your configuration. Terraform uses state to determine what changes need to be made. Without state, Terraform cannot track what infrastructure it manages.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 11,
+        "content": "### State Locking\nState locking prevents multiple users or automation processes from running Terraform simultaneously, which could corrupt state. When using remote backends like S3 with DynamoDB, Terraform automatically acquires and releases locks.\n\nDynamoDB table for state locking requires a partition key named `LockID` of type String.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 12,
+        "content": "### Remote Backends\nStoring state remotely enables team collaboration and improves security. The S3 backend is the most common choice for AWS users.\n\n```hcl\nterraform {\n  backend \"s3\" {\n    bucket         = \"my-terraform-state-bucket\"\n    key            = \"prod/terraform.tfstate\"\n    region         = \"us-east-1\"\n    dynamodb_table = \"terraform-state-lock\"\n    encrypt        = true\n  }\n}\n```\n\nOther supported backends include: Terraform Cloud, Azure Blob Storage, GCS, Consul, and HTTP.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 13,
+        "content": "### State Drift\nState drift occurs when infrastructure is modified outside of Terraform (e.g., manually via the AWS Console). Terraform detects drift when you run `terraform plan` by comparing the state file with the actual infrastructure. Use `terraform refresh` to update the state file to match real infrastructure without making changes.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 14,
+        "content": "### State Commands\n- `terraform state list` \u2014 lists all resources in state\n- `terraform state show <resource>` \u2014 shows attributes of a specific resource\n- `terraform state mv` \u2014 moves a resource from one state address to another (useful for refactoring)\n- `terraform state rm` \u2014 removes a resource from state without destroying it\n- `terraform import` \u2014 imports existing infrastructure into Terraform state\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 15,
+        "content": "## Terraform Workflow\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 16,
+        "content": "### Init\n`terraform init` initializes a working directory. It downloads provider plugins, sets up the backend, and installs modules. Must be run before any other command, and re-run when providers or modules change.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 17,
+        "content": "### Plan\n`terraform plan` creates an execution plan showing what actions Terraform will take to reach the desired state. It compares configuration, state, and real infrastructure. Always review the plan before applying. Use `-out=planfile` to save the plan for later use.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 18,
+        "content": "### Apply\n`terraform apply` executes the changes described in a plan. It asks for confirmation by default. Use `-auto-approve` to skip confirmation in automation pipelines. Pass a saved plan file to apply exactly what was reviewed.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 19,
+        "content": "### Destroy\n`terraform destroy` removes all resources managed by the configuration. It generates a destroy plan and asks for confirmation. In production, prefer targeted destruction over full destroy.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 20,
+        "content": "### Validate and Format\n- `terraform validate` \u2014 checks that configuration is syntactically valid and internally consistent\n- `terraform fmt` \u2014 rewrites configuration files to the canonical HCL format\n- `terraform graph` \u2014 produces a visual dependency graph in DOT format\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 21,
+        "content": "## Modules\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 22,
+        "content": "### What are Modules\nModules are reusable, self-contained packages of Terraform configuration. Every Terraform configuration is technically a module (the root module). Child modules are called from the root module.\n\n```hcl\nmodule \"vpc\" {\n  source  = \"terraform-aws-modules/vpc/aws\"\n  version = \"5.0.0\"\n\n  name = \"my-vpc\"\n  cidr = \"10.0.0.0/16\"\n\n  azs             = [\"us-east-1a\", \"us-east-1b\"]\n  private_subnets = [\"10.0.1.0/24\", \"10.0.2.0/24\"]\n  public_subnets  = [\"10.0.101.0/24\", \"10.0.102.0/24\"]\n}\n```\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 23,
+        "content": "### Module Sources\nModules can be sourced from:\n- Local paths (`./modules/networking`)\n- Terraform Registry (`hashicorp/consul/aws`)\n- GitHub or other VCS repositories\n- S3 buckets or GCS buckets\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 24,
+        "content": "### Module Best Practices\n- Keep modules focused on a single concern (networking, compute, security)\n- Always version-pin registry modules\n- Use input variable validation to enforce contracts\n- Expose only the outputs that callers need\n- Document all variables and outputs with descriptions\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 25,
+        "content": "## Dependencies and Meta-Arguments\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 26,
+        "content": "### Implicit Dependencies\nTerraform automatically infers dependencies when one resource references another using expressions. It builds a dependency graph and creates resources in the correct order.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 27,
+        "content": "### Explicit Dependencies\nUse `depends_on` to declare dependencies that Terraform cannot detect automatically (e.g., a Lambda function that needs an S3 bucket policy to exist before it can run).\n\n```hcl\nresource \"aws_instance\" \"app\" {\n  depends_on = [aws_iam_role_policy.app_policy]\n}\n```\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 28,
+        "content": "### Count and For Each\n`count` creates multiple instances of a resource using an integer.\n\n```hcl\nresource \"aws_instance\" \"server\" {\n  count         = 3\n  ami           = var.ami_id\n  instance_type = \"t3.micro\"\n}\n```\n\n`for_each` creates multiple instances from a map or set, giving each instance a meaningful key.\n\n```hcl\nresource \"aws_iam_user\" \"team\" {\n  for_each = toset([\"alice\", \"bob\", \"carol\"])\n  name     = each.key\n}\n```\n\nPrefer `for_each` over `count` when managing collections of similar resources, because adding or removing items in the middle of a list doesn't cause index-based replacement with `for_each`.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 29,
+        "content": "### Lifecycle\nThe `lifecycle` block controls resource behavior during creation, updates, and destruction.\n\n```hcl\nresource \"aws_instance\" \"web\" {\n  lifecycle {\n    create_before_destroy = true\n    ignore_changes        = [tags]\n    prevent_destroy       = true\n  }\n}\n```\n\n- `create_before_destroy` \u2014 creates a replacement resource before destroying the old one (useful for zero-downtime updates)\n- `ignore_changes` \u2014 tells Terraform to ignore changes to specific attributes\n- `prevent_destroy` \u2014 prevents accidental destruction of critical resources\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 30,
+        "content": "## Workspaces\n\nTerraform workspaces allow you to manage multiple distinct state files from a single configuration. Each workspace has its own state file. Workspaces are useful for managing environments (dev/staging/prod) within a single configuration but are not a substitute for full environment separation.\n\n```bash\nterraform workspace new staging\nterraform workspace select prod\nterraform workspace list\n```\n\nIn configuration, reference the current workspace with `terraform.workspace`.\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 31,
+        "content": "## Terraform Cloud and Enterprise\n\nTerraform Cloud provides remote execution, state storage, team collaboration features, and a policy-as-code engine called Sentinel. Key features include:\n- Remote plan and apply with audit logs\n- Workspace-based environment management\n- VCS-driven workflow (plans triggered on pull requests)\n- Private module registry\n- Sentinel policies for compliance enforcement\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 32,
+        "content": "## Security Best Practices\n\n- Never store sensitive values in plain text in `.tf` files or state files\n- Mark sensitive variables with `sensitive = true` to suppress output\n- Use `aws_secretsmanager_secret` or `vault_generic_secret` to retrieve secrets at runtime\n- Enable state file encryption at rest (S3 server-side encryption)\n- Restrict access to the state bucket and DynamoDB lock table using IAM policies\n- Use separate AWS accounts or Terraform workspaces per environment\n- Rotate provider credentials regularly; prefer IAM roles over long-lived access keys\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 33,
+        "content": "## Common Patterns\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 34,
+        "content": "### Blue-Green Deployments\nCreate new resources (blue) before destroying old ones (green) using `create_before_destroy` and traffic shifting at the load balancer level.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 35,
+        "content": "### Immutable Infrastructure\nReplace rather than update infrastructure. Use `create_before_destroy` and avoid in-place updates to compute resources. This reduces configuration drift and improves rollback reliability.\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 36,
+        "content": "### Terragrunt\nTerragrunt is a thin wrapper around Terraform that adds features like DRY configurations, automatic backend configuration, and dependency management across modules. It is widely used in large multi-account AWS environments.\n\n---\n"
+    },
+    {
+        "source": "terraform.md",
+        "chunk_id": 37,
+        "content": "## Troubleshooting\n\n- `Error: Resource already exists` \u2014 Resource exists in AWS but not in state. Use `terraform import`.\n- `Error acquiring state lock` \u2014 A previous run left a stale lock. Manually delete the lock item from DynamoDB or use `terraform force-unlock <LOCK_ID>`.\n- Provider version conflicts \u2014 Pin provider versions in `required_providers` and run `terraform init -upgrade`.\n- Dependency cycles \u2014 Terraform will error if resources depend on each other circularly. Restructure references or use `depends_on` carefully."
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 0,
+        "content": "# AWS Knowledge Base\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 1,
+        "content": "## What is AWS\n\nAmazon Web Services (AWS) is the world's most comprehensive and broadly adopted cloud platform, offering over 200 fully featured services from data centers globally. AWS provides on-demand access to compute power, storage, databases, networking, analytics, machine learning, security, and more \u2014 all with a pay-as-you-go pricing model. AWS follows a shared responsibility model: AWS manages security of the cloud, customers manage security in the cloud.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 2,
+        "content": "## Identity and Access Management (IAM)\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 3,
+        "content": "### EC2 Access to S3\n\nEC2 instances should access S3 using IAM roles instead of long-lived access keys. Attach an instance profile to the EC2 instance with the minimum required S3 permissions. This follows the principle of least privilege.\n\nFor private connectivity, use an S3 Gateway VPC Endpoint so traffic between EC2 and S3 does not need to go through the public internet.\n\nBucket policies can be used to restrict access to specific IAM roles, VPC endpoints, accounts, or conditions."
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 4,
+        "content": "### Core IAM Concepts\nIAM controls who (authentication) and what (authorization) can access AWS resources. It is global \u2014 not region-specific.\n\n**Users** represent individual people or applications. They have long-term credentials (access keys and passwords). Best practice: avoid using the root account for daily work. Create individual IAM users.\n\n**Groups** are collections of IAM users. Attach policies to groups rather than individual users for easier permission management.\n\n**Roles** are IAM identities with policies that can be assumed by users, AWS services, or federated identities. Roles have temporary credentials (via STS). EC2 instances, Lambda functions, and ECS tasks use roles to interact with other AWS services.\n\n**Policies** are JSON documents defining permissions. Types:\n- **AWS Managed Policies** \u2014 maintained by AWS\n- **Customer Managed Policies** \u2014 created and managed by you\n- **Inline Policies** \u2014 embedded directly in a user, group, or role\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 5,
+        "content": "### Policy Evaluation Logic\nIAM uses an explicit deny model. Evaluation order:\n1. Explicit Deny \u2014 always wins\n2. Service Control Policy (SCP) limits\n3. Explicit Allow\n4. Implicit Deny (default)\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 6,
+        "content": "### IAM Best Practices\n- Enable MFA for all users, especially root\n- Use IAM roles for EC2, Lambda, ECS instead of embedding access keys\n- Apply least privilege \u2014 grant only permissions needed\n- Rotate access keys regularly\n- Use IAM Access Analyzer to identify overly permissive policies\n- Use permission boundaries to limit maximum permissions\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 7,
+        "content": "## Compute\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 8,
+        "content": "### EC2 (Elastic Compute Cloud) EC2 provides resizable virtual servers. Key concepts: **Instance Types** are categorized by use case: - General Purpose: `t3`, `m6i` \u2014 balanced compute, memory, networking - Compute Optimized: `c6i` \u2014 high CPU workloads (batch, HPC) - Memory Optimized: `r6i`, `x2idn` \u2014 in-memory databases, analytics - Storage Optimized: `i4i`, `d3` \u2014 high sequential I/O - Accelerated Computing: `p4`, `g5` \u2014 GPU workloads, ML **Purchasing Options:** - **On-Demand** \u2014 pay per second/hour, no commitment - **Reserved Instances (RI)** \u2014 1 or 3 year commitment, up to 72% discount - **Savings Plans** \u2014 flexible alternative to RIs, applies to EC2, Fargate, Lambda - **Spot Instances** \u2014 use spare AWS capacity, up to 90% discount, can be interrupted with 2-minute"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 9,
+        "content": "warning - **Dedicated Hosts** \u2014 physical servers dedicated to your use, for compliance/licensing **AMI (Amazon Machine Image):** Template for the instance OS and pre-installed software. Can be AWS-provided, marketplace, or custom. **User Data:** Scripts passed at launch time to bootstrap instances (install packages, configure services). Runs once on first boot. **Instance Metadata Service (IMDS):** EC2 instances can query `http://169.254.169.254/latest/meta-data/` to retrieve metadata like instance ID, region, IAM role credentials. IMDSv2 (token-based) is recommended over IMDSv1 for security. **Placement Groups:** - Cluster \u2014 low latency, high throughput within single AZ - Spread \u2014 maximum availability, instances on different hardware - Partition \u2014 groups of instances on separate hardware partitions, for distributed systems like HDFS, Cassandra"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 10,
+        "content": "### Auto Scaling\n\nAuto Scaling automatically adjusts the number of EC2 instances based on demand.\n\n**Auto Scaling Group (ASG):** Defines min, max, and desired capacity. Works with launch templates. Integrates with Application Load Balancer for automatic health checks and instance replacement.\n\n**Scaling Policies:**\n- **Target Tracking** \u2014 maintain a metric at a target value (e.g., keep CPU at 50%)\n- **Step Scaling** \u2014 scale by different amounts based on alarm breach size\n- **Scheduled Scaling** \u2014 scale at specific times\n- **Predictive Scaling** \u2014 uses ML to forecast and scale proactively\n\n**Health Checks:** ASG can use EC2 health checks (instance status) or ELB health checks (application-level). Unhealthy instances are terminated and replaced.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 11,
+        "content": "### Lambda\n\nLambda is a serverless compute service. You upload code, Lambda runs it in response to triggers, and you pay only for execution time (milliseconds).\n\n**Key Concepts:**\n- Supports runtimes: Python, Node.js, Java, Go, Ruby, .NET, and custom runtimes\n- Max execution time: 15 minutes\n- Memory: 128 MB to 10 GB (CPU scales proportionally)\n- Ephemeral storage: `/tmp` up to 10 GB\n- Concurrency: default 1000 concurrent executions per account per region\n\n**Triggers:** S3 events, API Gateway, SQS, SNS, DynamoDB Streams, EventBridge, Cognito, ALB.\n\n**Invocation Models:**\n- Synchronous \u2014 caller waits for result (API Gateway, ALB)\n- Asynchronous \u2014 event queued, Lambda retries on failure (S3, SNS)\n- Stream-based \u2014 Lambda polls the stream (Kinesis, DynamoDB Streams)\n\n**Cold Starts:** Initial invocation takes longer as Lambda provisions a new execution environment. Mitigated by provisioned concurrency, keeping functions warm, or using lighter runtimes.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 12,
+        "content": "### ECS and Fargate\n\nECS (Elastic Container Service) is a container orchestration service. Fargate is a serverless compute engine for containers \u2014 you define CPU and memory, AWS manages the underlying infrastructure.\n\nKey concepts: Task Definition (blueprint for a container), Task (running instance of a task definition), Service (maintains a desired number of running tasks), Cluster (logical grouping of tasks or EC2 instances).\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 13,
+        "content": "## Storage\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 14,
+        "content": "### S3 (Simple Storage Service) S3 is object storage offering unlimited scalability. Objects are stored in buckets. Each object has a key (path-like name), value (data), metadata, and optional version ID. **Storage Classes:** - S3 Standard \u2014 frequently accessed data, low latency - S3 Intelligent-Tiering \u2014 automatically moves objects between tiers based on access patterns - S3 Standard-IA (Infrequent Access) \u2014 lower cost, retrieval fee - S3 One Zone-IA \u2014 single AZ, cheaper, less resilient - S3 Glacier Instant Retrieval \u2014 archive with millisecond retrieval - S3 Glacier Flexible Retrieval \u2014 minutes to hours retrieval - S3 Glacier Deep Archive \u2014 lowest cost, 12-hour retrieval **Key Features:** - Versioning \u2014 retains all versions of an object; protects against accidental deletion"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 15,
+        "content": "- Lifecycle Policies \u2014 automatically transition objects between storage classes or delete them - Replication \u2014 Cross-Region Replication (CRR) and Same-Region Replication (SRR) - Event Notifications \u2014 trigger Lambda, SQS, or SNS on object events - Presigned URLs \u2014 temporary access URLs for objects without requiring AWS credentials **Security:** - Block Public Access settings \u2014 should be enabled by default - Bucket Policies \u2014 resource-based policies for cross-account access - ACLs \u2014 legacy, prefer bucket policies - SSE-S3 \u2014 server-side encryption with S3-managed keys - SSE-KMS \u2014 encryption with AWS KMS keys (audit trail, key rotation) - SSE-C \u2014 encryption with customer-provided keys"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 16,
+        "content": "### EBS (Elastic Block Store)\n\nEBS provides persistent block storage volumes for EC2 instances. Volumes are tied to an AZ. Must be manually snapshotted for backup. Only one EC2 instance can attach an EBS volume at a time (except io1/io2 Multi-Attach).\n\n**Volume Types:**\n- gp3 \u2014 general purpose SSD, 3000 IOPS baseline, recommended default\n- gp2 \u2014 general purpose SSD, IOPS tied to size\n- io2 Block Express \u2014 high performance, up to 256,000 IOPS\n- st1 \u2014 throughput-optimized HDD, for big data, data warehouses\n- sc1 \u2014 cold HDD, lowest cost, infrequent access\n\n**Snapshots:** Point-in-time backups stored in S3. Incremental \u2014 only changed blocks are saved after the first snapshot. Can be copied across regions for disaster recovery.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 17,
+        "content": "### EFS (Elastic File System)\n\nEFS is a managed NFS file system that can be mounted by multiple EC2 instances simultaneously across AZs. Auto-scales storage. Supports Standard and Infrequent Access storage classes. More expensive than EBS per GB but eliminates capacity planning.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 18,
+        "content": "## Networking\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 19,
+        "content": "### VPC (Virtual Private Cloud) VPC is a logically isolated section of the AWS cloud. You define your own IP address range (CIDR block), subnets, route tables, gateways, and security settings. **Subnets:** Subdivisions of a VPC in a specific AZ. Public subnets have a route to an Internet Gateway. Private subnets do not. **Internet Gateway (IGW):** Allows communication between VPC instances and the internet. One per VPC. Stateful \u2014 allows return traffic automatically. **NAT Gateway:** Allows instances in private subnets to initiate outbound connections to the internet without exposing them to inbound traffic. Deployed in a public subnet. Managed by AWS \u2014 no maintenance required. NAT Instances are the self-managed alternative. **Route Tables:** Control where network traffic is directed. Each"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 20,
+        "content": "subnet is associated with one route table. Default routes for VPC traffic are local. Add `0.0.0.0/0 \u2192 igw-xxx` for internet access. **Security Groups:** Virtual firewalls for EC2 instances and other resources. Stateful \u2014 return traffic is automatically allowed. Rules are inbound/outbound. Only allow rules (no explicit deny). Reference other security groups by ID. **Network ACLs (NACLs):** Stateless firewalls at the subnet level. Support both allow and deny rules. Rules evaluated in order by number. Both inbound and outbound rules required for bidirectional traffic. **VPC Peering:** Connects two VPCs using private IP addresses. Not transitive \u2014 if A peers with B and B peers with C, A cannot reach C through B. **VPC Endpoints:** - Interface Endpoint \u2014 uses PrivateLink, an"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 21,
+        "content": "ENI with a private IP, for services like SSM, Secrets Manager - Gateway Endpoint \u2014 for S3 and DynamoDB only; modifies route table **AWS Transit Gateway:** Hub-and-spoke model connecting multiple VPCs and on-premises networks. Transitive routing \u2014 solve the peering scalability problem. **Direct Connect:** Dedicated network connection from on-premises to AWS, bypassing the internet. More consistent latency and throughput. Typically used for high-bandwidth, low-latency, or compliance-driven workloads. **VPN:** Site-to-Site VPN creates an encrypted IPsec tunnel over the internet between on-premises and a VPC Virtual Private Gateway. Faster to set up than Direct Connect but relies on internet."
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 22,
+        "content": "### Load Balancing\n\n**Application Load Balancer (ALB):** Layer 7 (HTTP/HTTPS). Routes based on host, path, headers, or query strings. Supports WebSockets, HTTP/2. Best for microservices and container-based applications. Integrates with ECS, Lambda, Cognito.\n\n**Network Load Balancer (NLB):** Layer 4 (TCP/UDP). Handles millions of requests per second with ultra-low latency. Supports static IPs and Elastic IPs. Used for gaming, IoT, financial applications.\n\n**Gateway Load Balancer (GWLB):** For deploying, scaling, and managing third-party network virtual appliances (firewalls, intrusion detection). Layer 3.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 23,
+        "content": "## Databases\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 24,
+        "content": "### RDS (Relational Database Service)\n\nManaged relational database service supporting MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, and Aurora. AWS handles patching, backups, and hardware.\n\n**Multi-AZ:** Synchronous standby replica in another AZ. Automatic failover. Used for high availability, not for read scaling.\n\n**Read Replicas:** Asynchronous replication for read scaling. Can be in the same region, cross-region. Can be promoted to standalone instance for disaster recovery.\n\n**Aurora:** AWS-proprietary database compatible with MySQL and PostgreSQL. Up to 5x faster than MySQL RDS. Storage auto-scales up to 128 TB. 6 copies of data across 3 AZs. Aurora Serverless v2 for variable workloads.\n\n**Backup:** Automated backups retained up to 35 days. Manual snapshots retained until deleted. Point-in-time recovery (PITR) available.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 25,
+        "content": "### DynamoDB\n\nDynamoDB is a fully managed NoSQL database offering single-digit millisecond latency. No servers to manage. Scales to any workload.\n\n**Data Model:** Tables contain items (rows). Items have attributes (columns). Each item is uniquely identified by a primary key \u2014 either a partition key alone, or a composite key (partition key + sort key).\n\n**Capacity Modes:**\n- Provisioned \u2014 specify read/write capacity units (RCUs/WCUs); use auto-scaling\n- On-Demand \u2014 pay per request, ideal for unpredictable workloads\n\n**Global Secondary Index (GSI):** Allows querying on non-primary-key attributes. Has its own partition key and optional sort key. Supports eventual consistency.\n\n**DynamoDB Streams:** Capture item-level changes (INSERT, MODIFY, REMOVE) in order. Used to trigger Lambda functions for event-driven architectures.\n\n**DAX (DynamoDB Accelerator):** In-memory cache for DynamoDB. Microsecond read latency. No application code changes required.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 26,
+        "content": "### ElastiCache\n\nManaged in-memory caching service supporting Redis and Memcached. Used to reduce database load, session storage, leaderboards, pub/sub messaging.\n\n**Redis** supports data persistence, replication, cluster mode, Lua scripting, sorted sets, and pub/sub. Preferred for complex use cases.\n\n**Memcached** is simpler, supports multi-threading, ideal for simple caching without persistence.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 27,
+        "content": "## Messaging and Integration\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 28,
+        "content": "### SQS (Simple Queue Service)\n\nFully managed message queuing service that decouples application components. Messages are persisted until consumed or expired (up to 14 days). Consumers poll for messages.\n\n**Standard Queue:** At-least-once delivery, best-effort ordering, nearly unlimited throughput.\n\n**FIFO Queue:** Exactly-once processing, strict ordering, up to 3,000 messages per second with batching.\n\n**Dead Letter Queue (DLQ):** Holds messages that failed processing after a specified number of attempts (MaxReceiveCount). Useful for debugging and reprocessing.\n\n**Visibility Timeout:** Period during which a received message is hidden from other consumers. Gives the consumer time to process and delete the message. Default 30 seconds, max 12 hours.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 29,
+        "content": "### SNS (Simple Notification Service)\n\nFully managed pub/sub messaging. Publishers send messages to topics. Topics fan out messages to multiple subscribers simultaneously. Supports SQS, Lambda, HTTP endpoints, email, SMS.\n\nFan-out pattern: Publish once to SNS \u2192 delivers to multiple SQS queues or Lambda functions. Decouples event producers from consumers.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 30,
+        "content": "### EventBridge\n\nServerless event bus that connects AWS services, SaaS applications, and custom applications. Uses event patterns to route events to targets. Supports scheduled rules (cron-based). The backbone for event-driven architecture on AWS.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 31,
+        "content": "### Kinesis\n\n**Kinesis Data Streams:** Real-time data streaming for logs, metrics, clickstreams. Data retained up to 7 days (extended). Consumers can replay data. Shard capacity: 1 MB/s write, 2 MB/s read per shard.\n\n**Kinesis Data Firehose:** Fully managed delivery stream to S3, Redshift, OpenSearch, Splunk. Near real-time (buffer based on time or size). No consumers to manage.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 32,
+        "content": "## Monitoring and Observability\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 33,
+        "content": "### CloudWatch\n\nCloudWatch is AWS's native monitoring service.\n\n**Metrics:** Time-series data points from AWS services and custom applications. Default EC2 metrics include CPU, disk I/O, network. Detailed monitoring (1-minute intervals) costs extra.\n\n**Logs:** CloudWatch Logs stores, monitors, and analyzes log files. Log Groups contain Log Streams. Log Insights for querying. Metric Filters extract metrics from log patterns.\n\n**Alarms:** Trigger actions (SNS notifications, Auto Scaling, EC2 actions) when metrics cross thresholds. States: OK, ALARM, INSUFFICIENT_DATA.\n\n**Dashboards:** Customizable visualizations of metrics.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 34,
+        "content": "### CloudTrail\n\nRecords all API calls made to AWS services. Who did what, when, from where. Stores logs in S3. Essential for security auditing, compliance, and incident investigation. Enabled by default for 90 days; create a Trail for longer retention.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 35,
+        "content": "### AWS Config\n\nContinuously records configuration changes to AWS resources and evaluates them against desired configurations (Config Rules). Tracks resource relationships. Enables compliance auditing and change management.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 36,
+        "content": "## Security Services\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 37,
+        "content": "### AWS KMS (Key Management Service)\n\nManaged service for creating and controlling encryption keys. Integrates with most AWS services. Keys never leave KMS unencrypted. Supports automatic annual key rotation. Customer Managed Keys (CMK) give you full control.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 38,
+        "content": "### AWS Secrets Manager\n\nStores and rotates secrets (database credentials, API keys). Supports automatic rotation using Lambda. Charges per secret per month. Access via SDK or IAM policy.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 39,
+        "content": "### AWS WAF (Web Application Firewall)\n\nProtects web applications from common exploits (SQL injection, XSS). Works with ALB, CloudFront, API Gateway. Uses Web ACLs with rules and rule groups. AWS Managed Rules for common threats.\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 40,
+        "content": "### AWS Shield\n\nDDoS protection. Shield Standard is automatic and free. Shield Advanced provides enhanced detection, protection for EC2, ELB, CloudFront, Route 53, and 24/7 access to the AWS DDoS Response Team (DRT).\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 41,
+        "content": "### GuardDuty\n\nIntelligent threat detection service. Analyzes CloudTrail logs, VPC Flow Logs, DNS logs using ML. Detects anomalies like unauthorized access, cryptocurrency mining, data exfiltration. No agents required.\n\n---\n"
+    },
+    {
+        "source": "aws.md",
+        "chunk_id": 42,
+        "content": "## Cost Optimization\n\n- Use AWS Cost Explorer and Budgets to track and forecast spending\n- Rightsize EC2 instances using Compute Optimizer recommendations\n- Purchase Reserved Instances or Savings Plans for predictable workloads\n- Use Spot Instances for fault-tolerant batch and stateless workloads\n- Enable S3 Intelligent-Tiering for data with unpredictable access patterns\n- Delete unattached EBS volumes and unused Elastic IPs\n- Use CloudWatch to identify underutilized resources\n- Set up billing alerts to catch unexpected cost increases"
+    }
+]

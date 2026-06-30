@@ -402,18 +402,44 @@ Ranked Results
 # Upcoming Milestones
 
 ## Milestone 21
+RAG V2 – Semantic Search using Titan Embeddings
 
-RAG V2 – Semantic Search
+### Concepts Learned
+- Embeddings
+- Vector Representation
+- Cosine Similarity
+- Semantic Retrieval
+- JSON-backed Vector Store
 
-Potential Topics:
+### Features Added
+- Titan Embeddings integration
+- vector_store.json
+- Vector store builder
+- Semantic search engine
+- Similarity score display
 
-* Embeddings
-* Vector Representations
-* Similarity Search
-
+### Key Learning
+Embeddings convert text into numerical meaning coordinates. Semantic search retrieves relevant chunks based on meaning, not exact keyword matches.
 ---
 
 ## Milestone 22
+Streamlit Semantic RAG Integration
+
+### Concepts Learned
+- End-to-end RAG application flow
+- Retrieved context debugging
+- Context-aware answer generation
+
+### Features Added
+- AI Notes Assistant using Semantic RAG
+- Retrieved chunks expander
+- Similarity score visibility
+- Full context sent to Bedrock
+
+### Key Learning
+A good RAG system must expose retrieved context for debugging. When answers are poor, first inspect retrieval before blaming the LLM.
+
+## Milestone 23
 
 RAG V3 – Vector Database
 
@@ -426,7 +452,7 @@ Potential Technologies:
 
 ---
 
-## Milestone 23
+## Milestone 24
 
 PDF Knowledge Base
 
@@ -438,7 +464,7 @@ Features:
 
 ---
 
-## Milestone 24
+## Milestone 25
 
 Resume-Based Interview Assistant
 
@@ -450,7 +476,7 @@ Features:
 
 ---
 
-## Milestone 25
+## Milestone 26
 
 Deployment
 
@@ -463,7 +489,7 @@ Options:
 
 ---
 
-## Milestone 26
+## Milestone 27
 
 Medium Blog Series
 
