@@ -11,8 +11,10 @@ KNOWLEDGE_BASE = Path("knowledge_base")
 def build_vector_store():
     vector_records = []
 
-    for file in KNOWLEDGE_BASE.glob("*.md"):
-        content = file.read_text()
+    for file in KNOWLEDGE_BASE.rglob("*.md"):
+        print(f"Processing: {file}")
+
+        content = file.read_text(encoding="utf-8")
         chunks = split_markdown_into_chunks(content)
 
         for index, chunk in enumerate(chunks):
@@ -22,7 +24,7 @@ def build_vector_store():
             embedding = get_embedding(chunk)
 
             record = {
-                "source": file.name,
+                "source": str(file.relative_to(KNOWLEDGE_BASE)),
                 "chunk_id": index,
                 "content": chunk,
                 "embedding": embedding,
