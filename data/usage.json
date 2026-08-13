@@ -68,5 +68,12 @@
         "model_id": "amazon.nova-lite-v1:0",
         "estimated_input_tokens": 714,
         "estimated_output_tokens": 208
+    },
+    {
+        "date": "2026-08-13 13:50:50",
+        "feature": "Semantic RAG Notes Search",
+        "model_id": "amazon.nova-lite-v1:0",
+        "estimated_input_tokens": 480,
+        "estimated_output_tokens": 400
     }
 ]

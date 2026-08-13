@@ -117,7 +117,7 @@ def search_notes(query, top_k=3):
     query_keywords = get_keywords(query)
     scored_results = []
 
-    for file in KNOWLEDGE_BASE.glob("*.md"):
+    for file in KNOWLEDGE_BASE.rglob("*.md"):
         content = file.read_text()
         chunks = split_markdown_into_chunks(content)
 

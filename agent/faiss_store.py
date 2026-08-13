@@ -12,18 +12,22 @@ FAISS_METADATA_FILE = Path("data/faiss_metadata.json")
 
 
 def build_faiss_index():
+    # Loads chunks, each contains chunks, embeddings, and metadata.
     vectors = load_vectors()
 
     if not vectors:
         raise ValueError("No vectors found. Run build_vectors.py first.")
 
+    # NumPy matrix is a specialized, high-performance structure designed strictly for numerical computations.
     embeddings = np.array(
         [item["embedding"] for item in vectors],
         dtype="float32"
     )
-
+    # np.shape() returns a tuple representing the dimensions of an array.
     dimension = embeddings.shape[1]
 
+    # IndexFlatIP - a fundamental, brute-force search index in the FAISS (Facebook AI Similarity Search) library.
+    # Here we are it creates Empty Search Index.
     index = faiss.IndexFlatIP(dimension)
 
     faiss.normalize_L2(embeddings)
