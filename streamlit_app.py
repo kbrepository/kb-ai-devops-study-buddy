@@ -20,6 +20,7 @@ from agent.bedrock_client import (
     generate_ai_study_plan,
     answer_from_notes,
     answer_from_notes_semantic,
+    answer_from_notes_faiss
 )
 
 st.set_page_config(
@@ -56,7 +57,7 @@ menu = st.sidebar.radio(
         "AI Answer Evaluation",
         "Evaluation History",
         "AI Study Plan",
-        "AI Notes Assistant (Semantic RAG)"
+        "AI Notes Assistant (FAISS RAG)"
     ],
 )
 
@@ -261,8 +262,8 @@ elif menu == "AI Study Plan":
 #     if st.button("Search Notes"):
 #         answer = answer_from_notes(question)
 #         st.markdown(answer)
-elif menu == "AI Notes Assistant (Semantic RAG)":
-    st.header("AI Notes Assistant (Semantic RAG)")
+elif menu == "AI Notes Assistant (FAISS RAG)":
+    st.header("AI Notes Assistant (FAISS RAG)")
 
     question = st.text_input(
         "Ask a question",
@@ -273,7 +274,7 @@ elif menu == "AI Notes Assistant (Semantic RAG)":
         if not question:
             st.warning("Please enter a question.")
         else:
-            with st.spinner("Searching notes using semantic retrieval..."):
+            with st.spinner("Searching notes using FAISS semantic retrieval..."):
                 try:
                     answer, results, context = answer_from_notes_semantic(question)
 
