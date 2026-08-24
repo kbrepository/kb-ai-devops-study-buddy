@@ -27,7 +27,7 @@ An AI-powered interview preparation and learning assistant built using:
 
 ## Architecture
 
-[Architecture Diagram]
+[[Architecture Diagram](https://github.com/kbrepository/kb-ai-devops-study-buddy/blob/main/docs/images/architecture.png)]
 
 ---
 
